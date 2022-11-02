@@ -29,9 +29,6 @@
 # !command -v ffmpeg >/dev/null || (apt-get -qq update && apt-get -qq -y install ffmpeg) >/dev/null
 
 # %%
-# # !pip install -q advent-of-code-ocr parse
-
-# %%
 # !pip install -q advent-of-code-hhoppe hhoppe-tools mediapy numba
 
 # %%
@@ -39,18 +36,13 @@ from __future__ import annotations
 
 import collections
 from collections.abc import Iterator
-import copy
 import dataclasses
 import functools
-import heapq
 import itertools
-import math
 import operator
 import re
-import sys
 import textwrap
-import typing
-from typing import Any, Generic, TypeVar
+from typing import Any
 
 import advent_of_code_hhoppe  # https://github.com/hhoppe/advent-of-code-hhoppe/blob/main/advent_of_code_hhoppe/__init__.py
 import hhoppe_tools as hh  # https://github.com/hhoppe/hhoppe-tools/blob/main/hhoppe_tools/__init__.py
@@ -72,8 +64,9 @@ YEAR = 2017
 PROFILE = 'github.hhoppe.1452460'
 # PROFILE = 'google.Hugues_Hoppe.965276'
 TAR_URL = f'https://github.com/hhoppe/advent_of_code_{YEAR}/raw/main/data/{PROFILE}.tar.gz'
-hh.run(f"if [ ! -d data/{PROFILE} ]; then (mkdir -p data && cd data &&"
-       f" wget -q {TAR_URL} && tar xzf {PROFILE}.tar.gz); fi")
+if 1:
+  hh.run(f"if [ ! -d data/{PROFILE} ]; then (mkdir -p data && cd data &&"
+         f" wget -q {TAR_URL} && tar xzf {PROFILE}.tar.gz); fi")
 INPUT_URL = f'data/{PROFILE}/{{year}}_{{day:02d}}_input.txt'
 ANSWER_URL = f'data/{PROFILE}/{{year}}_{{day:02d}}{{part_letter}}_answer.txt'
 
@@ -83,8 +76,8 @@ if 0:
   # See https://github.com/wimglenn/advent-of-code-data.
   hh.run('rm -f ~/.config/aocd/token*')
   # Fill-in the session cookie in the following:
-  hh.run(f"if [ '{PROFILE}' = 'google.Hugues_Hoppe.965276' ]; then mkdir -p ~/.config/aocd && echo 53616... >~/.config/aocd/token; fi")
   hh.run(f"if [ '{PROFILE}' = 'github.hhoppe.1452460' ]; then mkdir -p ~/.config/aocd; echo 53616... >~/.config/aocd/token; fi")
+  hh.run(f"if [ '{PROFILE}' = 'google.Hugues_Hoppe.965276' ]; then mkdir -p ~/.config/aocd && echo 53616... >~/.config/aocd/token; fi")
   hh.run('pip install -q advent-of-code-data')
   import aocd
 
@@ -2001,7 +1994,7 @@ if 1:  # Look for unwanted pollution of namespace.
 # %%
 if 0:  # Save puzzle inputs and answers to a compressed archive for downloading.
   # Create a new tar.gz file.
-  hh.run(f"""tar -C ~/.config/aocd -czf '/mnt/c/hh/tmp/{PROFILE}.tar.gz' '{PROFILE.replace("_", " ")}'""")
+  hh.run(f"""cd /mnt/c/hh/tmp && cp -rp ~/.config/aocd/'{PROFILE.replace("_", " ")}' '{PROFILE}' && tar -czf '{PROFILE}.tar.gz' '{PROFILE}'""")
 
 # %%
 hh.show_notebook_cell_top_times()

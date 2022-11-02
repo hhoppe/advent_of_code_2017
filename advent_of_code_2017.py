@@ -17,7 +17,7 @@
 # Here are some visualization results:
 #
 # <a href="#day14">day14</a><img src="https://github.com/hhoppe/advent_of_code_2017/raw/main/results/day14.png" width="256"> &emsp;
-# <a href="#day22">day22</a><img src="https://github.com/hhoppe/advent_of_code_2017/raw/main/results/day22.png" width="335">
+# <a href="#day22">day22</a><img src="https://github.com/hhoppe/advent_of_code_2017/raw/main/results/day22.png" width="363">
 # <br/>
 # <a href="#day21">day21</a><img src="https://github.com/hhoppe/advent_of_code_2017/raw/main/results/day21.png" width="867">
 
@@ -61,8 +61,8 @@ YEAR = 2017
 
 # %%
 # (1) To obtain puzzle inputs and answers, we first try these paths/URLs:
-PROFILE = 'github.hhoppe.1452460'
-# PROFILE = 'google.Hugues_Hoppe.965276'
+PROFILE = 'google.Hugues_Hoppe.965276'
+# PROFILE = 'github.hhoppe.1452460'
 TAR_URL = f'https://github.com/hhoppe/advent_of_code_{YEAR}/raw/main/data/{PROFILE}.tar.gz'
 if 1:
   hh.run(f"if [ ! -d data/{PROFILE} ]; then (mkdir -p data && cd data &&"
@@ -76,8 +76,8 @@ if 0:
   # See https://github.com/wimglenn/advent-of-code-data.
   hh.run('rm -f ~/.config/aocd/token*')
   # Fill-in the session cookie in the following:
-  hh.run(f"if [ '{PROFILE}' = 'github.hhoppe.1452460' ]; then mkdir -p ~/.config/aocd; echo 53616... >~/.config/aocd/token; fi")
   hh.run(f"if [ '{PROFILE}' = 'google.Hugues_Hoppe.965276' ]; then mkdir -p ~/.config/aocd && echo 53616... >~/.config/aocd/token; fi")
+  hh.run(f"if [ '{PROFILE}' = 'github.hhoppe.1452460' ]; then mkdir -p ~/.config/aocd; echo 53616... >~/.config/aocd/token; fi")
   hh.run('pip install -q advent-of-code-data')
   import aocd
 

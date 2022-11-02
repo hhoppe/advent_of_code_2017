@@ -103,6 +103,7 @@ hh.adjust_jupyterlab_markdown_width()
 
 # %%
 check_eq = hh.check_eq
+_ORIGINAL_GLOBALS = list(globals())
 
 # %% [markdown]
 # <a name="day1"></a>
@@ -430,7 +431,7 @@ s1 = '0 2 7 0'
 
 # %%
 def process1(s, part2=False):
-  blocks = tuple(int(word) for word in s.split())
+  blocks = tuple(int(word) for word in s.strip('\n').split())
   seen = {blocks: 0}
 
   for num_rearrangements in itertools.count(1):
@@ -582,7 +583,7 @@ puzzle = advent.puzzle(day=9)
 
 # %%
 def process1(s, part2=False):
-  s = re.sub(r'!.', '', s)
+  s = re.sub(r'!.', '', s.strip('\n'))
   num_garbage = 0
 
   def read_group(s: str, i: int) -> tuple[list[Any], int]:
@@ -642,6 +643,7 @@ s1 = '3, 4, 1, 5'
 
 # %%
 def process1(s, num=256, part2=False):
+  s = s.strip('\n')
   if not part2:
     lengths = [int(s2) for s2 in s.replace(' ', '').split(',')]
   else:
@@ -692,7 +694,7 @@ puzzle = advent.puzzle(day=11)
 
 # %%
 def process1(s, part2=False):
-  steps = s.split(',')
+  steps = s.strip('\n').split(',')
   MOVES = {'s': (1, 0), 'se': (0, 1), 'n': (-1, 0), 'nw': (0, -1), 'ne': (-1, 1), 'sw': (1, -1)}
 
   def hex_radius(y: int, x: int) -> int:
@@ -818,12 +820,11 @@ puzzle.verify(1, process1)
 
 
 # %%
-def process1(s, part2=False):
+def process2(s):  # Brute-force simplistic approach.
   range_of_depth = {}
   for line in s.strip('\n').split('\n'):
     s1, s2 = line.split(': ')
     depth, range_ = int(s1), int(s2)
-    assert depth >= 0 and range_ >= 2
     range_of_depth[depth] = range_
   max_depth = max(range_of_depth.keys())
   scanner_pos0 = {depth: 0 for depth in range_of_depth}
@@ -833,23 +834,17 @@ def process1(s, part2=False):
     scanner_pos = scanner_pos0.copy()
     scanner_inc = scanner_inc0.copy()
 
-    total_severity = 0
+    ok = True
     for depth in range(max_depth + 1):
       if scanner_pos.get(depth) == 0:
-        if part2:
-          total_severity = 1
-          break
-        else:
-          total_severity += depth * range_of_depth[depth]
+        ok = False
+        break
       for depth in scanner_pos:
         scanner_pos[depth] += scanner_inc[depth]
         if scanner_pos[depth] in (0, range_of_depth[depth] - 1):
           scanner_inc[depth] = -scanner_inc[depth]
 
-    if not part2:
-      return total_severity
-
-    if total_severity == 0:
+    if ok:
       return delay
 
     for depth in scanner_pos0:
@@ -858,16 +853,72 @@ def process1(s, part2=False):
         scanner_inc0[depth] = -scanner_inc0[depth]
 
 
-check_eq(process1(s1), 24)
-puzzle.verify(1, process1)
-
-process2 = functools.partial(process1, part2=True)
 check_eq(process2(s1), 10)
 if 0:
-  puzzle.verify(2, process2)  # ~56 s; slow! (delay = 3966414)
+  puzzle.verify(2, process2)  # ~56 s (e.g. result 3966414)
+
 
 # %%
-# Use Chinese remainder theorem or something like that??
+def process2(s):  # Use numpy but one delay at a time.
+  scanners = np.array([list(map(int, line.split(': '))) for line in s.strip('\n').split('\n')])
+  depth, period = scanners[:, 0], (scanners[:, 1] - 1) * 2
+  for delay in itertools.count():
+    if np.all((delay + depth) % period):
+      return delay
+
+check_eq(process2(s1), 10)
+if 0:
+  puzzle.verify(2, process2)  # ~11 s.
+
+
+# %%
+def process2(s, chunk=3_000):  # Use numpy vectorized over chunks of delays.
+  scanners = np.array([list(map(int, line.split(': '))) for line in s.strip('\n').split('\n')])
+  depth, period = scanners[:, 0], (scanners[:, 1] - 1) * 2
+  for index in itertools.count():
+    delay = np.arange(index * chunk, (index + 1) * chunk)
+    matrix = (delay[:, None] + depth) % period
+    indices = np.argwhere(np.all(matrix, axis=1))
+    if len(indices):
+      return delay[0] + indices[0][0]
+
+check_eq(process2(s1), 10)
+puzzle.verify(2, process2)  # ~0.5 s.
+
+
+# %%
+def process2(s, chunk=80_000):  # Use numpy but iterate on scanners over chunks of delays.
+  scanners = np.array([list(map(int, line.split(': '))) for line in s.strip('\n').split('\n')])
+  depth, period = scanners[:, 0], (scanners[:, 1] - 1) * 2
+  for index in itertools.count():
+    delay = np.arange(index * chunk, (index + 1) * chunk)
+    ok = np.full(chunk, True)
+    for d, p in zip(depth, period):
+      ok[(delay + d) % p == 0] = False
+    indices = np.argwhere(ok)
+    if len(indices):
+      return delay[0] + indices[0][0]
+
+check_eq(process2(s1), 10)
+puzzle.verify(2, process2)  # ~0.4 s.
+
+
+# %%
+def process2(s, chunk=100_000):  # Use numpy but iterate on scanners over chunks of delays.
+  scanners = np.array([list(map(int, line.split(': '))) for line in s.strip('\n').split('\n')])
+  depth, period = scanners[:, 0], (scanners[:, 1] - 1) * 2
+  for start in itertools.count(0, chunk):
+    stop = start + chunk
+    ok = np.full(chunk, True)
+    for d, p in zip(depth, period):
+      first = (-(start + d)) % p
+      ok[first:chunk:p] = False
+    indices = np.argwhere(ok)
+    if len(indices):
+      return start + indices[0][0]
+
+check_eq(process2(s1, chunk=4), 10)
+puzzle.verify(2, process2)  # ~0.005 s.
 
 # %% [markdown]
 # <a name="day14"></a>
@@ -883,6 +934,7 @@ puzzle = advent.puzzle(day=14)
 
 # %%
 def process1(s, part2=False):
+  s = s.strip('\n')
 
   def knot_hash(s: str, num: int = 256, num_rounds: int = 64) -> list[int]:
     lengths = [ord(ch) for ch in s] + [17, 31, 73, 47, 23]
@@ -993,7 +1045,7 @@ puzzle = advent.puzzle(day=16)
 def process1(s, num=16):  # Simpler version supporting only Part 1.
   state = [chr(ord('a') + i) for i in range(num)]
 
-  for move in s.split(','):
+  for move in s.strip('\n').split(','):
     operation, operands = move[0], move[1:]
     if operation == 's':
       size = int(operands)
@@ -1022,7 +1074,7 @@ def process1(s, num=16, num_permutations=1):
   perm_sym = list(range(num))  # Destination sym for each source sym.
   perm_pos = list(range(num))  # Destination pos for each source pos.
 
-  for move in s.split(','):
+  for move in s.strip('\n').split(','):
     operation, operands = move[0], move[1:]
     if operation == 'p':
       sym0, sym1 = (ord(ch) - ord('a') for ch in operands.split('/'))
@@ -1082,7 +1134,7 @@ puzzle = advent.puzzle(day=17)
 
 # %%
 def process1(s, part2=False):
-  step = int(s)
+  step = int(s.strip('\n'))
   assert step > 0
 
   if not part2:
@@ -1279,7 +1331,7 @@ s1 = """
 
 # %%
 def process1(s, part2=False):
-  grid = hh.grid_from_string(s)  # [201, 201].
+  grid = hh.grid_from_string(s)  # shape=(201, 201).
   grid = np.pad(grid, ((0, 1), (0, 1)), constant_values=' ')
   (y, x), = np.argwhere(grid[:1] == '|')
   dy, dx = 1, 0
@@ -1435,7 +1487,7 @@ puzzle.verify(2, process2)
 # %% [markdown]
 # - Part 1: Given your actual map, after 10000 bursts of activity, how many bursts cause a node to become infected? (Do not count nodes that begin infected.)
 #
-# - Part 2: ?
+# - Part 2: With the addition of Weakened and Flagged, after 10000000 bursts of activity, how many bursts cause a node to become infected?
 
 # %%
 puzzle = advent.puzzle(day=22)
@@ -1461,14 +1513,18 @@ def process1(s, num_iterations=10_000, part2=False, visualize=False):
 
   for index in range(num_iterations):
     state = grid.get((y, x), ' ')
-    # Left, straight, right, U-turn.
-    dy, dx = {' ': (-dx, dy), 'W': (dy, dx), '#': (dx, -dy), 'F': (-dy, -dx)}[state]
-    new_state = UPDATE[state]
-    grid[y, x] = new_state
+    if state == ' ':
+      dy, dx = -dx, dy  # Turn left.
+    elif state == '#':
+      dy, dx = dx, -dy  # Turn right.
+    elif state == 'F':
+      dy, dx = -dy, -dx  # Make U-turn.
+    grid[y, x] = new_state = UPDATE[state]
     num_newly_infected += new_state == '#'
     y, x = y + dy, x + dx
 
   if visualize:
+    # hh.show(max(abs(x) + abs(y) for y, x in grid))  # 335
     media.show_image(hh.image_from_yx_map(grid, background=' ', cmap=cmap))
 
   return num_newly_infected
@@ -1482,8 +1538,47 @@ puzzle.verify(1, process1)
 process2 = functools.partial(process1, num_iterations=10_000_000, part2=True)
 check_eq(process2(s1, num_iterations=100), 26)
 # check_eq(process2(s1), 2_511_944)
-puzzle.verify(2, process2)  # Slow; 3.3 s.??
+# puzzle.verify(2, process2)  # ~2.2 s.
 _ = process2(puzzle.input, visualize=True)
+
+
+# %%
+def process1(s, num_iterations=10_000, part2=False):
+  grid = hh.grid_from_string(s,  {'.': 0, '#': 1})  # Later also: {'W': 2, 'F': 3}.
+  pad = 500 if part2 else 200
+  grid = np.pad(grid, pad)
+
+  @numba_njit(cache=True)  # ~3.9 s -> ~0.05 s.
+  def compute(grid):
+    UPDATE = (2, 3, 1, 0) if part2 else (1, 0)
+    y, x = grid.shape[0] // 2, grid.shape[1] // 2
+    dy, dx = -1, 0  # Up direction.
+    num_newly_infected = 0
+    for index in range(num_iterations):
+      state = grid[y, x]
+      if state == 0:
+        dy, dx = -dx, dy  # Turn left.
+      elif state == 1:
+        dy, dx = dx, -dy  # Turn right.
+      elif state == 3:
+        dy, dx = -dy, -dx  # Make U-turn.
+      grid[y, x] = new_state = UPDATE[state]
+      num_newly_infected += new_state == 1
+      y, x = y + dy, x + dx
+    return num_newly_infected
+
+  return compute(grid)
+
+
+check_eq(process1(s1, num_iterations=7), 5)
+check_eq(process1(s1, num_iterations=70), 41)
+check_eq(process1(s1), 5587)
+puzzle.verify(1, process1)
+
+process2 = functools.partial(process1, num_iterations=10_000_000, part2=True)
+check_eq(process2(s1, num_iterations=100), 26)
+check_eq(process2(s1), 2_511_944)
+puzzle.verify(2, process2)
 
 # %% [markdown]
 # <a name="day23"></a>
@@ -1632,7 +1727,7 @@ puzzle.verify(2, process2)
 
 # %% [markdown]
 # <a name="day24"></a>
-# ## Day 24: Connecting dominoes
+# ## Day 24: Long domino chains
 
 # %% [markdown]
 # - Part 1: What is the strength of the strongest bridge you can make with the components you have available?
@@ -1703,12 +1798,12 @@ puzzle.verify(2, process2)
 
 # %% [markdown]
 # <a name="day25"></a>
-# ## Day 25: Turning machine
+# ## Day 25: Turing machine
 
 # %% [markdown]
 # - Part 1: After the specified number of steps have been executed, count the number of times 1 appears on the tape.
 #
-# - Part 2: ?
+# - Part 2: None on day 25.
 
 # %%
 puzzle = advent.puzzle(day=25)
@@ -1741,7 +1836,7 @@ In state B:
 
 
 # %%
-def process1(s, part2=False):
+def process1(s):  # Slow version using dicts and Python.
   parts = s.strip('\n').split('\n\n')
   state, s_steps = re.match(r'(?s)Begin in state (.+)\..* after (.+) steps', parts[0]).groups()
   num_steps = int(s_steps)
@@ -1749,20 +1844,53 @@ def process1(s, part2=False):
   for part in parts[1:]:
     current, = re.match(r'In state (.+):', part).groups()
     conditions = part.split('If the current ')[1:]
+    assert len(conditions) == 2
     for condition in conditions:
       pattern = r'(?s)value is (.+):.*Write the value (.+)\..*to the (.+)\..* state (.+)\.'
-      condition_state, write_value, move, next_state = re.match(pattern, condition).groups()
-      logic[current, int(condition_state)] = int(write_value), move, next_state
-  # hh.show(state, num_steps, logic)
+      condition_state, s_write_value, s_move, next_state = re.match(pattern, condition).groups()
+      logic[current, int(condition_state)] = (
+          int(s_write_value), {'left': -1, 'right': +1}[s_move], next_state)
 
   tape = collections.defaultdict(int)
   pos = 0
   for index in range(num_steps):
     write_value, move, state = logic[state, tape[pos]]
     tape[pos] = write_value
-    pos += {'left': -1, 'right': +1}[move]
+    pos += move
 
   return sum(tape.values())
+
+
+check_eq(process1(s1), 3)
+puzzle.verify(1, process1)  # ~1.1 s.
+# hh.Stats(record_pos) = ( 12_208_951)        -6960 : 28           av=-3000.24     sd=3422.89
+
+# %%
+def process1(s, size=100_000):  # Fast version using integer arrays and jitted numba.
+  parts = s.strip('\n').split('\n\n')
+  s_state, s_steps = re.match(r'(?s)Begin in state (.+)\..* after (.+) steps', parts[0]).groups()
+  state, num_steps = ord(s_state) - ord('A'), int(s_steps)
+
+  logic_lines: list[tuple[int, int, int]] = []  # (write_value, move, next_state)
+  for part in parts[1:]:
+    for condition in part.split('If the current ')[1:]:
+      pattern = r'(?s)Write the value (.+)\..*to the (.+)\..* state (.+)\.'
+      s_write_value, s_move, s_next_state = re.search(pattern, condition).groups()
+      logic_lines.append(
+          (int(s_write_value), {'left': -1, 'right': +1}[s_move], ord(s_next_state) - ord('A')))
+  logic = np.array(logic_lines)
+
+  @numba_njit(cache=True)  # ~10.5 s -> 0.05 s.
+  def compute(state):
+    tape = np.full(size, 0)
+    pos = size // 2
+    for index in range(num_steps):
+      write_value, move, state = logic[state * 2 + tape[pos]]
+      tape[pos] = write_value
+      pos += move
+    return np.sum(tape)
+
+  return compute(state)
 
 
 check_eq(process1(s1), 3)
@@ -1792,13 +1920,12 @@ if 0:  # Compute min execution times over several calls.
   advent.show_times(recompute=True, repeat=3)
 
 # %%
-if 0:  # Look for unwanted pollution of namespace.
-  print(textwrap.fill(' '.join(var for var, value in globals().items() if (
-      not var.startswith('_') and not repr(value).startswith(
-          ('<module', '<class', 'typing.', 'functools.partial('))))))
+if 1:  # Look for unwanted pollution of namespace.
+  print(textwrap.fill(' '.join(var for var, value in globals().items() if not (
+      var.startswith('_') or var in _ORIGINAL_GLOBALS))))
 
 # %%
-if 1:  # Save puzzle inputs and answers to a compressed archive for downloading.
+if 0:  # Save puzzle inputs and answers to a compressed archive for downloading.
   # Create a new tar.gz file.
   hh.run(f"""tar -C ~/.config/aocd -czf '/mnt/c/hh/tmp/{PROFILE}.tar.gz' '{PROFILE.replace("_", " ")}'""")
 
@@ -1823,16 +1950,6 @@ def process1(s, part2=False):
 # process2 = functools.partial(process1, part2=True)
 # check_eq(process1(s1), 18)
 # puzzle.verify(2, process2)
-
-
-# %%
-if 0:
-  ZIP_URL = f'https://github.com/hhoppe/advent_of_code_{YEAR}/raw/main/data/{PROFILE}.zip'
-  hh.run(f"if [ ! -d data/{PROFILE} ]; then (mkdir -p data && cd data &&"
-         f" wget -q {ZIP_URL} && unzip -q {PROFILE}); fi")
-
-  # Create a new zip file, quietly (-q) and ignoring relative paths (-j).
-  hh.run(f"""!zip -q -j - ~/.config/aocd/'{PROFILE.replace("_", " ")}'/*.txt >/content/data.zip""")
 
 # %% [markdown]
 # [[Open the notebook in mybinder.org]](https://mybinder.org/v2/gh/hhoppe/advent_of_code_2017/main?filepath=advent_of_code_2017.ipynb)

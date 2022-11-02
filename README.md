@@ -11,3 +11,8 @@ I was able to speed up all the solutions such that the [cumulative time](#timing
 (For some puzzles, I had to resort to the `numba` package to jit-compile Python functions.)
 
 Here are some visualization results:
+
+<a href="#day14">day14</a><img src="https://github.com/hhoppe/advent_of_code_2017/raw/main/results/day14.png" width="256"> &emsp;
+<a href="#day22">day22</a><img src="https://github.com/hhoppe/advent_of_code_2017/raw/main/results/day22.png" width="335">
+<br/>
+<a href="#day21">day21</a><img src="https://github.com/hhoppe/advent_of_code_2017/raw/main/results/day21.png" width="867">

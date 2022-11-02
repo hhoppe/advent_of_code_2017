@@ -15,6 +15,11 @@
 # (For some puzzles, I had to resort to the `numba` package to jit-compile Python functions.)
 #
 # Here are some visualization results:
+#
+# <a href="#day14">day14</a><img src="https://github.com/hhoppe/advent_of_code_2017/raw/main/results/day14.png" width="256"> &emsp;
+# <a href="#day22">day22</a><img src="https://github.com/hhoppe/advent_of_code_2017/raw/main/results/day22.png" width="335">
+# <br/>
+# <a href="#day21">day21</a><img src="https://github.com/hhoppe/advent_of_code_2017/raw/main/results/day21.png" width="867">
 
 # %% [markdown]
 # <a name="preamble"></a>
@@ -64,8 +69,8 @@ YEAR = 2017
 
 # %%
 # (1) To obtain puzzle inputs and answers, we first try these paths/URLs:
-# PROFILE = 'google.Hugues_Hoppe.965276'
 PROFILE = 'github.hhoppe.1452460'
+# PROFILE = 'google.Hugues_Hoppe.965276'
 TAR_URL = f'https://github.com/hhoppe/advent_of_code_{YEAR}/raw/main/data/{PROFILE}.tar.gz'
 hh.run(f"if [ ! -d data/{PROFILE} ]; then (mkdir -p data && cd data &&"
        f" wget -q {TAR_URL} && tar xzf {PROFILE}.tar.gz); fi")
@@ -275,14 +280,15 @@ puzzle.verify(1, process1)
 
 
 # %%
-def process2(s):
+def process2(s, size=41):
   value = int(s)
-  g = 20  # First value 1 has index [g, g] in the grid.
-  grid = np.zeros((g * 2, g * 2), dtype=np.int32)
-  for y, x in spiral_yx():
-    y2, x2 = y + g, x + g
-    count = max(np.sum(grid[y2 - 1: y2 + 2, x2 - 1: x2 + 2]), 1)
-    grid[y2, x2] = count
+  grid = np.zeros((size, size), dtype=np.int32)
+  g = size // 2  # The first value 1 is located at central grid[g, g].
+  for y0, x0 in spiral_yx():
+    y, x = y0 + g, x0 + g
+    assert y >= 1 and x >= 1
+    count = max(np.sum(grid[y - 1: y + 2, x - 1: x + 2]), 1)
+    grid[y, x] = count
     if count > value:
       return count
 
@@ -642,7 +648,7 @@ s1 = '3, 4, 1, 5'
 
 
 # %%
-def process1(s, num=256, part2=False):
+def process1(s, num=256, num_rounds=1, part2=False):
   s = s.strip('\n')
   if not part2:
     lengths = [int(s2) for s2 in s.replace(' ', '').split(',')]
@@ -652,7 +658,6 @@ def process1(s, num=256, part2=False):
   state = list(range(num))
   position = 0
   skip = 0
-  num_rounds = 64 if part2 else 1
   for round_index in range(num_rounds):
     for length in lengths:
       assert length <= num
@@ -666,14 +671,13 @@ def process1(s, num=256, part2=False):
     return state[0] * state[1]
 
   xors = [functools.reduce(operator.xor, group, 0) for group in hh.grouped(state, 16)]
-  result = ''.join(f'{value:02x}' for value in xors)
-  return result
+  return ''.join(f'{value:02x}' for value in xors)
 
 
 check_eq(process1(s1, num=5), 12)
 puzzle.verify(1, process1)
 
-process2 = functools.partial(process1, part2=True)
+process2 = functools.partial(process1, num_rounds=64, part2=True)
 check_eq(process2('1,2,3'), '3efbe78a8d82f29979031a4aa0b16a9d')
 check_eq(process2(''), 'a2582a3a0e66e6e86e3812dcb672a272')
 check_eq(process2('AoC 2017'), '33efeb34ea91902bb2f59c9920caa6cd')
@@ -721,7 +725,7 @@ puzzle.verify(2, process2)
 
 # %% [markdown]
 # <a name="day12"></a>
-# ## Day 12: Union Find
+# ## Day 12: Union-Find
 
 # %% [markdown]
 # - Part 1: How many programs are in the group that contains program ID 0?
@@ -887,7 +891,7 @@ puzzle.verify(2, process2)  # ~0.5 s.
 
 
 # %%
-def process2(s, chunk=80_000):  # Use numpy but iterate on scanners over chunks of delays.
+def process2(s, chunk=80_000):  # Use numpy sieve, iterating on scanners over chunks of delays.
   scanners = np.array([list(map(int, line.split(': '))) for line in s.strip('\n').split('\n')])
   depth, period = scanners[:, 0], (scanners[:, 1] - 1) * 2
   for index in itertools.count():
@@ -904,7 +908,7 @@ puzzle.verify(2, process2)  # ~0.4 s.
 
 
 # %%
-def process2(s, chunk=100_000):  # Use numpy but iterate on scanners over chunks of delays.
+def process2(s, chunk=100_000):  # Use numpy sieve (~Eratosthenes) with array slices.
   scanners = np.array([list(map(int, line.split(': '))) for line in s.strip('\n').split('\n')])
   depth, period = scanners[:, 0], (scanners[:, 1] - 1) * 2
   for start in itertools.count(0, chunk):
@@ -933,7 +937,7 @@ puzzle.verify(2, process2)  # ~0.005 s.
 puzzle = advent.puzzle(day=14)
 
 # %%
-def process1(s, part2=False):
+def process1(s, part2=False, visualize=False):
   s = s.strip('\n')
 
   def knot_hash(s: str, num: int = 256, num_rounds: int = 64) -> list[int]:
@@ -960,6 +964,8 @@ def process1(s, part2=False):
 
   if not part2:
     # hh.show(grid[:8, :8])
+    if visualize:
+      media.show_image(grid.repeat(2, axis=0).repeat(2, axis=1) == 0, border=True)
     return np.sum(grid)
 
   union_find = hh.UnionFind[int]()
@@ -978,6 +984,9 @@ puzzle.verify(1, process1)
 process2 = functools.partial(process1, part2=True)
 check_eq(process2('flqrgnkx'), 1242)
 puzzle.verify(2, process2)
+
+# %%
+_ = process1(puzzle.input, visualize=True)
 
 # %% [markdown]
 # <a name="day15"></a>
@@ -1093,22 +1102,17 @@ def process1(s, num=16, num_permutations=1):
       raise AssertionError
 
   def evaluate(perm_sym: list[int], perm_pos: list[int]) -> str:
-    array = [' '] * num
-    for i in range(num):
-      array[perm_pos[i]] = chr(perm_sym[i] + ord('a'))
-    return ''.join(array)
+    # Invert permutation using https://stackoverflow.com/a/11649931.
+    return ''.join(chr(perm_sym[i] + ord('a')) for i in np.argsort(perm_pos))  # ??
 
   @functools.lru_cache(None)
   def compose(num_permutations: int) -> tuple(list(int), list(int)):
     if num_permutations == 1:
       return perm_sym, perm_pos
-    num0 = (num_permutations + 1) // 2
-    num1 = num_permutations - num0
-    perm_sym0, perm_pos0 = compose(num0)
-    perm_sym1, perm_pos1 = compose(num1)
-    perm_sym_new = [perm_sym1[sym0] for sym0 in perm_sym0]
-    perm_pos_new = [perm_pos1[pos0] for pos0 in perm_pos0]
-    return perm_sym_new, perm_pos_new
+    num0, num1 = (num_permutations + 1) // 2, num_permutations // 2
+    (perm_sym0, perm_pos0), (perm_sym1, perm_pos1) = compose(num0), compose(num1)
+    return ([perm_sym1[sym0] for sym0 in perm_sym0],
+            [perm_pos1[pos0] for pos0 in perm_pos0])
 
   return evaluate(*compose(num_permutations))
 
@@ -1145,11 +1149,10 @@ def process1(s, part2=False):
       pos = (pos + step) % len(state)
       state = state[:pos + 1] + [index + 1] + state[pos + 1:]
       pos = pos + 1
-      # if index < 9: hh.show(state, pos)
 
     return state[pos + 1]
 
-  @numba_njit(cache=True)  # ~2.6 s -> ~0.2 s.
+  @numba_njit(cache=True)  # ~2.6 s -> ~0.16 s.
   def compute_part2():
     pos = 0
     after_zero = -1
@@ -1409,7 +1412,7 @@ def process1(s, part2=False):
     velocity += acceleration
     position += velocity
     unique, index, counts = np.unique(position, axis=0, return_index=True, return_counts=True)
-    index = index[counts == 1]
+    index = index[counts == 1]  # Indices of non-intersecting particles.
     position, velocity, acceleration = position[index], velocity[index], acceleration[index]
 
   return len(position)
@@ -1442,7 +1445,7 @@ s1 = """
 
 
 # %%
-def process1(s, num_iterations=5):
+def process1(s, num_iterations=5, visualize=False):
 
   def get_grid(s: str) -> np.ndarray:
     return (np.array([list(row) for row in s.split('/')]) == '#').astype(int)
@@ -1460,7 +1463,10 @@ def process1(s, num_iterations=5):
 
   grid = np.array([[0, 1, 0], [0, 0, 1], [1, 1, 1]])
 
+  grids = []
   for index in range(num_iterations):
+    if visualize and index < 13:
+      grids.append(grid == 0)
     n = grid.shape[0]
     size = 2 if n % 2 == 0 else 3
     new_size = {2: 3, 3: 4}[size]
@@ -1471,6 +1477,11 @@ def process1(s, num_iterations=5):
     new_blocks = rules[size][encoded]
     grid = new_blocks.transpose(0, 2, 1, 3).reshape(new_n, new_n)
 
+  if visualize:
+    combined = hh.assemble_arrays(grids, (1, -1), background=True, spacing=8)
+    combined = np.pad(combined, 4, constant_values=True)
+    media.show_image(combined, border=True)
+
   return np.sum(grid)
 
 
@@ -1479,6 +1490,9 @@ puzzle.verify(1, process1)
 
 process2 = functools.partial(process1, num_iterations=18)  # grid.shape = (2187, 2187)
 puzzle.verify(2, process2)
+
+# %%
+_ = process2(puzzle.input, visualize=True)
 
 # %% [markdown]
 # <a name="day22"></a>
@@ -1539,6 +1553,8 @@ process2 = functools.partial(process1, num_iterations=10_000_000, part2=True)
 check_eq(process2(s1, num_iterations=100), 26)
 # check_eq(process2(s1), 2_511_944)
 # puzzle.verify(2, process2)  # ~2.2 s.
+
+# %%
 _ = process2(puzzle.input, visualize=True)
 
 
@@ -1582,7 +1598,7 @@ puzzle.verify(2, process2)
 
 # %% [markdown]
 # <a name="day23"></a>
-# ## Day 23: Puzzle program
+# ## Day 23: Reverse-engineer program
 
 # %% [markdown]
 # - Part 1: If you run the program (your puzzle input), how many times is the mul instruction invoked?
@@ -1751,8 +1767,9 @@ s1 = """
 
 
 # %%
-def process1(s, start=0, part2=False):
+def process1(s, start=0, part2=False):  # Slower, creating list of updated remaining components.
   components = [tuple(map(int, line.split('/'))) for line in s.strip('\n').split('\n')]
+  check_eq(len(components), len(set(components)))  # In fact, they are all unique.
 
   def compatible_components(start: int, components: list[tuple[int, int]]):
     for i, (v0, v1) in enumerate(components):
@@ -1763,30 +1780,86 @@ def process1(s, start=0, part2=False):
       remaining = components[:i] + components[i + 1:]
       yield v1, remaining
 
-  def compute_strongest(start: int, components: list[tuple[int, int]]) -> int:
+  def compute_strongest(v0: int, components: list[tuple[int, int]]) -> int:
     max_strength = 0
-    for value, remaining in compatible_components(start, components):
-      max_strength = max(max_strength, start + value + compute_strongest(value, remaining))
+    for v1, remaining in compatible_components(v0, components):
+      max_strength = max(max_strength, v0 + v1 + compute_strongest(v1, remaining))
     return max_strength
 
   if not part2:
     return compute_strongest(start, components)
 
-  def compute_longest_length(start: int, components: list[tuple[int, int]]) -> int:
+  def compute_longest_length(v0: int, components: list[tuple[int, int]]) -> int:
     max_length = 0
-    for value, remaining in compatible_components(start, components):
-      max_length = max(max_length, 1 + compute_longest_length(value, remaining))
+    for v1, remaining in compatible_components(v0, components):
+      max_length = max(max_length, 1 + compute_longest_length(v1, remaining))
     return max_length
 
-  def compute_longest(start: int, remaining_length: int, components: list[tuple[int, int]]) -> int:
+  def compute_longest(v0: int, remaining_length: int, components: list[tuple[int, int]]) -> int:
     max_strength = 0 if remaining_length == 0 else -10_000
-    for value, remaining in compatible_components(start, components):
+    for v1, remaining in compatible_components(v0, components):
       max_strength = max(
-          max_strength, start + value + compute_longest(value, remaining_length - 1, remaining))
+          max_strength, v0 + v1 + compute_longest(v1, remaining_length - 1, remaining))
     return max_strength
 
   longest_length = compute_longest_length(start, components)
   return compute_longest(start, longest_length, components)
+
+
+check_eq(process1(s1), 31)
+puzzle.verify(1, process1)
+
+process2 = functools.partial(process1, part2=True)
+check_eq(process2(s1), 19)
+puzzle.verify(2, process2)
+
+
+# %%
+def process1(s, start=0, part2=False):  # Faster, with side effects on sets of remaining components.
+  components = [tuple(map(int, line.split('/'))) for line in s.strip('\n').split('\n')]
+  max_v = max(max(v0, v1) for v0, v1 in components)
+  active_from_v = [set() for v in range(max_v + 1)]
+  for v0, v1 in components:
+    active_from_v[v0].add(v1)
+    if v1 != v0:
+      active_from_v[v1].add(v0)
+
+  def compatible_components(v0: int) -> Iterator[int]:
+    set_v0 = active_from_v[v0]
+    for v1 in list(set_v0):
+      if v1 != v0:
+        set_v1 = active_from_v[v1]
+        set_v0.remove(v1), set_v1.remove(v0)
+        yield v1
+        set_v1.add(v0), set_v0.add(v1)
+      else:
+        set_v0.remove(v1)
+        yield v1
+        set_v0.add(v1)
+
+  def compute_strongest(v0: int) -> int:
+    max_strength = 0
+    for v1 in compatible_components(v0):
+      max_strength = max(max_strength, v0 + v1 + compute_strongest(v1))
+    return max_strength
+
+  if not part2:
+    return compute_strongest(start)
+
+  def compute_longest_length(v0: int) -> int:
+    max_length = 0
+    for v1 in compatible_components(v0):
+      max_length = max(max_length, 1 + compute_longest_length(v1))
+    return max_length
+
+  def compute_longest(v0: int, remaining_length: int) -> int:
+    max_strength = 0 if remaining_length == 0 else -10_000
+    for v1 in compatible_components(v0):
+      max_strength = max(max_strength, v0 + v1 + compute_longest(v1, remaining_length - 1))
+    return max_strength
+
+  longest_length = compute_longest_length(start)  # 36
+  return compute_longest(start, longest_length)
 
 
 check_eq(process1(s1), 31)
@@ -1858,12 +1931,13 @@ def process1(s):  # Slow version using dicts and Python.
     tape[pos] = write_value
     pos += move
 
+  # hh.Stats(record_pos) = ( 12_208_951)        -6960 : 28           av=-3000.24     sd=3422.89
   return sum(tape.values())
 
 
 check_eq(process1(s1), 3)
 puzzle.verify(1, process1)  # ~1.1 s.
-# hh.Stats(record_pos) = ( 12_208_951)        -6960 : 28           av=-3000.24     sd=3422.89
+
 
 # %%
 def process1(s, size=100_000):  # Fast version using integer arrays and jitted numba.

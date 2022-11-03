@@ -79,7 +79,7 @@ if 0:
   hh.run(f"if [ '{PROFILE}' = 'google.Hugues_Hoppe.965276' ]; then mkdir -p ~/.config/aocd && echo 53616... >~/.config/aocd/token; fi")
   hh.run(f"if [ '{PROFILE}' = 'github.hhoppe.1452460' ]; then mkdir -p ~/.config/aocd; echo 53616... >~/.config/aocd/token; fi")
   hh.run('pip install -q advent-of-code-data')
-  import aocd
+  import aocd  # pylint: disable=unused-import # noqa
 
 # %%
 try:
@@ -116,7 +116,7 @@ _ORIGINAL_GLOBALS = list(globals())
 puzzle = advent.puzzle(day=1)
 
 # %%
-def process1(s, part2=False):
+def process1(s, *, part2=False):
   digits = [int(ch) for ch in s.strip('\n')]
   total = 0
   offset = len(digits) // 2 if part2 else 1
@@ -167,7 +167,7 @@ s2 = """
 
 
 # %%
-def process1(s, part2=False):
+def process1(s, *, part2=False):
   total = 0
 
   for line in s.strip('\n').split('\n'):
@@ -273,7 +273,7 @@ puzzle.verify(1, process1)
 
 
 # %%
-def process2(s, size=41):
+def process2(s, *, size=41):
   value = int(s)
   grid = np.zeros((size, size), dtype=np.int32)
   g = size // 2  # The first value 1 is located at central grid[g, g].
@@ -284,6 +284,7 @@ def process2(s, size=41):
     grid[y, x] = count
     if count > value:
       return count
+  raise AssertionError
 
 check_eq(process2('1'), 2)
 check_eq(process2('2'), 4)
@@ -322,7 +323,7 @@ oiii ioii iioi iiio
 
 
 # %%
-def process1(s, part2=False):
+def process1(s, *, part2=False):
   num_valid = 0
 
   for line in s.strip('\n').split('\n'):
@@ -366,7 +367,7 @@ s1 = """
 
 
 # %%
-def process1(s, part2=False):  # Slow.
+def process1(s, *, part2=False):  # Slow.
   values = [int(s2) for s2 in s.strip('\n').split('\n')]
   pos = 0
 
@@ -376,6 +377,7 @@ def process1(s, part2=False):  # Slow.
     pos += offset
     if not 0 <= pos < len(values):
       return num_steps
+  raise AssertionError
 
 
 check_eq(process1(s1), 5)
@@ -388,7 +390,7 @@ if 0:
 
 
 # %%
-def process1(s, part2=False):  # Fast.
+def process1(s, *, part2=False):  # Fast.
   values = np.array([int(s2) for s2 in s.strip('\n').split('\n')], dtype=np.int64)
 
   @numba_njit(cache=True)
@@ -429,7 +431,7 @@ s1 = '0 2 7 0'
 
 
 # %%
-def process1(s, part2=False):
+def process1(s, *, part2=False):
   blocks = tuple(int(word) for word in s.strip('\n').split())
   seen = {blocks: 0}
 
@@ -484,7 +486,7 @@ cntj (57)
 
 
 # %%
-def process1(s, part2=False):
+def process1(s, *, part2=False):
   prog = re.compile(r'([a-z]+) \((\d+)\)( -> .*)?')
   graph = {}
   weights = {}
@@ -529,7 +531,7 @@ puzzle.verify(2, process2)
 # %% [markdown]
 # - Part 1: What is the largest value in any register after completing the instructions in your puzzle input?
 #
-# - Part 2: What is the highest value held in any register during this process 
+# - Part 2: What is the highest value held in any register during this process?
 
 # %%
 puzzle = advent.puzzle(day=8)
@@ -544,7 +546,7 @@ c inc -20 if c == 10
 
 
 # %%
-def process1(s, part2=False):
+def process1(s, *, part2=False):
   COND_OPS = {'<': operator.lt, '>': operator.gt, '<=': operator.le, '>=': operator.ge,
               '==': operator.eq, '!=': operator.ne}
   prog = re.compile(r'([a-z]+) (inc|dec) (-?\d+) if ([a-z]+) (<|>|<=|>=|==|!=) (-?\d+)')
@@ -581,14 +583,14 @@ puzzle.verify(2, process2)
 puzzle = advent.puzzle(day=9)
 
 # %%
-def process1(s, part2=False):
+def process1(s, *, part2=False):
   s = re.sub(r'!.', '', s.strip('\n'))
   num_garbage = 0
 
   def read_group(s: str, i: int) -> tuple[list[Any], int]:
     nonlocal num_garbage
     check_eq(s[i], '{')
-    groups = []
+    groups: list[Any] = []
     while True:
       i += 1
       if s[i] == '}':
@@ -641,7 +643,7 @@ s1 = '3, 4, 1, 5'
 
 
 # %%
-def process1(s, num=256, num_rounds=1, part2=False):
+def process1(s, *, num=256, num_rounds=1, part2=False):
   s = s.strip('\n')
   if not part2:
     lengths = [int(s2) for s2 in s.replace(' ', '').split(',')]
@@ -651,7 +653,7 @@ def process1(s, num=256, num_rounds=1, part2=False):
   state = list(range(num))
   position = 0
   skip = 0
-  for round_index in range(num_rounds):
+  for _ in range(num_rounds):
     for length in lengths:
       assert length <= num
       rotated = state[position:] + state[:position] if position else state
@@ -690,7 +692,7 @@ puzzle.verify(2, process2)
 puzzle = advent.puzzle(day=11)
 
 # %%
-def process1(s, part2=False):
+def process1(s, *, part2=False):
   steps = s.strip('\n').split(',')
   MOVES = {'s': (1, 0), 'se': (0, 1), 'n': (-1, 0), 'nw': (0, -1), 'ne': (-1, 1), 'sw': (1, -1)}
 
@@ -741,7 +743,7 @@ s1 = """
 
 
 # %%
-def process1(s, part2=False):
+def process1(s, *, part2=False):
   union_find = hh.UnionFind[str]()
   nodes = []
   for line in s.strip('\n').split('\n'):
@@ -869,7 +871,7 @@ if 0:
 
 
 # %%
-def process2(s, chunk=3_000):  # Use numpy vectorized over chunks of delays.
+def process2(s, *, chunk=3_000):  # Use numpy vectorized over chunks of delays.
   scanners = np.array([list(map(int, line.split(': '))) for line in s.strip('\n').split('\n')])
   depth, period = scanners[:, 0], (scanners[:, 1] - 1) * 2
   for index in itertools.count():
@@ -884,7 +886,7 @@ puzzle.verify(2, process2)  # ~0.5 s.
 
 
 # %%
-def process2(s, chunk=80_000):  # Use numpy sieve, iterating on scanners over chunks of delays.
+def process2(s, *, chunk=80_000):  # Use numpy sieve, iterating on scanners over chunks of delays.
   scanners = np.array([list(map(int, line.split(': '))) for line in s.strip('\n').split('\n')])
   depth, period = scanners[:, 0], (scanners[:, 1] - 1) * 2
   for index in itertools.count():
@@ -901,11 +903,10 @@ puzzle.verify(2, process2)  # ~0.4 s.
 
 
 # %%
-def process2(s, chunk=100_000):  # Use numpy sieve (~Eratosthenes) with array slices.
+def process2(s, *, chunk=100_000):  # Use numpy sieve (~Eratosthenes) with array slices.
   scanners = np.array([list(map(int, line.split(': '))) for line in s.strip('\n').split('\n')])
   depth, period = scanners[:, 0], (scanners[:, 1] - 1) * 2
   for start in itertools.count(0, chunk):
-    stop = start + chunk
     ok = np.full(chunk, True)
     for d, p in zip(depth, period):
       first = (-(start + d)) % p
@@ -930,7 +931,7 @@ puzzle.verify(2, process2)  # ~0.005 s.
 puzzle = advent.puzzle(day=14)
 
 # %%
-def process1(s, part2=False, visualize=False):
+def process1(s, *, part2=False, visualize=False):
   s = s.strip('\n')
 
   def knot_hash(s: str, num: int = 256, num_rounds: int = 64) -> list[int]:
@@ -938,7 +939,7 @@ def process1(s, part2=False, visualize=False):
     state = list(range(num))
     position = 0
     skip = 0
-    for round_index in range(num_rounds):
+    for _ in range(num_rounds):
       for length in lengths:
         assert length <= num
         rotated = state[position:] + state[:position] if position else state
@@ -1001,21 +1002,21 @@ Generator B starts with 8921
 
 
 # %%
-def process1(s, part2=False):
+def process1(s, *, part2=False):
   state0, state1 = (int(line.split(' starts with ')[1]) for line in s.strip('\n').split('\n'))
 
   @numba_njit(cache=True)
   def compute(state0: int, state1: int) -> int:
-    FACTOR0, FACTOR1 = 16807, 48271
+    factor0, factor1 = 16807, 48271
     num_matches = 0
     num_checks = 5_000_000 if part2 else 40_000_000
-    for index in range(num_checks):
+    for _ in range(num_checks):
       while True:
-        state0 = (state0 * FACTOR0) % 2147483647
+        state0 = (state0 * factor0) % 2147483647
         if not part2 or state0 & 3 == 0:
           break
       while True:
-        state1 = (state1 * FACTOR1) % 2147483647
+        state1 = (state1 * factor1) % 2147483647
         if not part2 or state1 & 7 == 0:
           break
       num_matches += (state0 & 65535) == (state1 & 65535)
@@ -1044,7 +1045,7 @@ puzzle.verify(2, process2)
 puzzle = advent.puzzle(day=16)
 
 # %%
-def process1(s, num=16):  # Simpler version supporting only Part 1.
+def process1(s, *, num=16):  # Simpler version supporting only Part 1.
   state = [chr(ord('a') + i) for i in range(num)]
 
   for move in s.strip('\n').split(','):
@@ -1071,7 +1072,7 @@ puzzle.verify(1, process1)  # e.g. 'olgejankfhbmpidc'
 
 
 # %%
-def process1(s, num=16, num_permutations=1):
+def process1(s, *, num=16, num_permutations=1):
   # We track two permutations: a permutation on symbols, and a permutation on positions.
   perm_sym = list(range(num))  # Destination sym for each source sym.
   perm_pos = list(range(num))  # Destination pos for each source pos.
@@ -1130,7 +1131,7 @@ puzzle.verify(2, process2)
 puzzle = advent.puzzle(day=17)
 
 # %%
-def process1(s, part2=False):
+def process1(s, *, part2=False):
   step = int(s.strip('\n'))
   assert step > 0
 
@@ -1250,11 +1251,12 @@ def process2(s):
 
   @dataclasses.dataclass
   class Program:
+    """One of two programs running the shared `instructions`."""
     program_id: int
     pc: int = 0
     registers: dict[str, int] = dataclasses.field(
         default_factory=lambda: collections.defaultdict(int))
-    queue: collections.deque[int] = dataclasses.field(default_factory=lambda: collections.deque())
+    queue: collections.deque[int] = dataclasses.field(default_factory=collections.deque)
     total_sends: int = 0
 
     def __post_init__(self):
@@ -1326,7 +1328,7 @@ s1 = """
 
 
 # %%
-def process1(s, part2=False):
+def process1(s, *, part2=False):
   grid = hh.grid_from_string(s)  # shape=(201, 201).
   grid = np.pad(grid, ((0, 1), (0, 1)), constant_values=' ')
   (y, x), = np.argwhere(grid[:1] == '|')
@@ -1387,7 +1389,7 @@ p=< 3,0,0>, v=<-1,0,0>, a=< 0,0,0>
 
 
 # %%
-def process1(s, part2=False):
+def process1(s, *, part2=False):
   lines = s.strip('\n').split('\n')
 
   def parse(ch: str) -> np.ndarray:
@@ -1404,7 +1406,8 @@ def process1(s, part2=False):
   for time in range(200):
     velocity += acceleration
     position += velocity
-    unique, index, counts = np.unique(position, axis=0, return_index=True, return_counts=True)
+    unused_unique, index, counts = np.unique(
+        position, axis=0, return_index=True, return_counts=True)
     index = index[counts == 1]  # Indices of non-intersecting particles.
     position, velocity, acceleration = position[index], velocity[index], acceleration[index]
 
@@ -1438,7 +1441,7 @@ s1 = """
 
 
 # %%
-def process1(s, num_iterations=5, visualize=False):
+def process1(s, *, num_iterations=5, visualize=False):
 
   def get_grid(s: str) -> np.ndarray:
     return (np.array([list(row) for row in s.split('/')]) == '#').astype(int)
@@ -1465,10 +1468,10 @@ def process1(s, num_iterations=5, visualize=False):
     new_size = {2: 3, 3: 4}[size]
     m = n // size
     new_n = m * new_size
-    grid_blocks = grid.reshape(m, size, m, size).transpose(0, 2, 1, 3).reshape(m, m, size**2)
+    grid_blocks = grid.reshape((m, size, m, size)).transpose(0, 2, 1, 3).reshape((m, m, size**2))
     encoded = grid_blocks.dot(2**np.arange(size**2))
     new_blocks = rules[size][encoded]
-    grid = new_blocks.transpose(0, 2, 1, 3).reshape(new_n, new_n)
+    grid = new_blocks.transpose(0, 2, 1, 3).reshape((new_n, new_n))
 
   if visualize:
     combined = hh.assemble_arrays(grids, (1, -1), background=True, spacing=8)
@@ -1508,7 +1511,7 @@ s1 = """
 
 
 # %%
-def process1(s, num_iterations=10_000, part2=False, visualize=False):
+def process1(s, *, num_iterations=10_000, part2=False, visualize=False):
   initial_grid = hh.grid_from_string(s)
   cy, cx = np.array(initial_grid.shape) // 2
   grid = {(y - cy, x - cx): '#' for y, x in np.argwhere(initial_grid == '#')}
@@ -1518,7 +1521,7 @@ def process1(s, num_iterations=10_000, part2=False, visualize=False):
   UPDATE = {' ': 'W', 'W': '#', '#': 'F', 'F': ' '} if part2 else {' ': '#', '#': ' '}
   cmap = {' ': (235, 235, 235), '#': (255, 0, 0), 'W': (50, 50, 200), 'F': (0, 150, 0)}
 
-  for index in range(num_iterations):
+  for _ in range(num_iterations):
     state = grid.get((y, x), ' ')
     if state == ' ':
       dy, dx = -dx, dy  # Turn left.
@@ -1552,8 +1555,8 @@ _ = process2(puzzle.input, visualize=True)
 
 
 # %%
-def process1(s, num_iterations=10_000, part2=False):
-  grid = hh.grid_from_string(s,  {'.': 0, '#': 1})  # Later also: {'W': 2, 'F': 3}.
+def process1(s, *, num_iterations=10_000, part2=False):
+  grid = hh.grid_from_string(s, {'.': 0, '#': 1})  # Later also: {'W': 2, 'F': 3}.
   pad = 500 if part2 else 200
   grid = np.pad(grid, pad)
 
@@ -1563,7 +1566,7 @@ def process1(s, num_iterations=10_000, part2=False):
     y, x = grid.shape[0] // 2, grid.shape[1] // 2
     dy, dx = -1, 0  # Up direction.
     num_newly_infected = 0
-    for index in range(num_iterations):
+    for _ in range(num_iterations):
       state = grid[y, x]
       if state == 0:
         dy, dx = -dx, dy  # Turn left.
@@ -1602,7 +1605,7 @@ puzzle.verify(2, process2)
 puzzle = advent.puzzle(day=23)
 
 # %%
-def process1(s, part2=False):
+def process1(s, *, part2=False):
   instructions = [tuple(line.split(' ')) for line in s.strip('\n').split('\n')]
   pc = 0
   registers = collections.defaultdict(int)
@@ -1760,7 +1763,7 @@ s1 = """
 
 
 # %%
-def process1(s, start=0, part2=False):  # Slower, creating list of updated remaining components.
+def process1(s, *, start=0, part2=False):  # Slower, creating list of updated remaining components.
   components = [tuple(map(int, line.split('/'))) for line in s.strip('\n').split('\n')]
   check_eq(len(components), len(set(components)))  # In fact, they are all unique.
 
@@ -1808,7 +1811,7 @@ puzzle.verify(2, process2)
 
 
 # %%
-def process1(s, start=0, part2=False):  # Faster, with side effects on sets of remaining components.
+def process1(s, *, start=0, part2=False):  # Faster; side effects on sets of remaining components.
   components = [tuple(map(int, line.split('/'))) for line in s.strip('\n').split('\n')]
   max_v = max(max(v0, v1) for v0, v1 in components)
   active_from_v = [set() for v in range(max_v + 1)]
@@ -1822,9 +1825,11 @@ def process1(s, start=0, part2=False):  # Faster, with side effects on sets of r
     for v1 in list(set_v0):
       if v1 != v0:
         set_v1 = active_from_v[v1]
-        set_v0.remove(v1), set_v1.remove(v0)
+        set_v0.remove(v1)
+        set_v1.remove(v0)
         yield v1
-        set_v1.add(v0), set_v0.add(v1)
+        set_v1.add(v0)
+        set_v0.add(v1)
       else:
         set_v0.remove(v1)
         yield v1
@@ -1919,7 +1924,7 @@ def process1(s):  # Slow version using dicts and Python.
 
   tape = collections.defaultdict(int)
   pos = 0
-  for index in range(num_steps):
+  for _ in range(num_steps):
     write_value, move, state = logic[state, tape[pos]]
     tape[pos] = write_value
     pos += move
@@ -1933,7 +1938,7 @@ puzzle.verify(1, process1)  # ~1.1 s.
 
 
 # %%
-def process1(s, size=100_000):  # Fast version using integer arrays and jitted numba.
+def process1(s, *, size=100_000):  # Fast version using integer arrays and jitted numba.
   parts = s.strip('\n').split('\n\n')
   s_state, s_steps = re.match(r'(?s)Begin in state (.+)\..* after (.+) steps', parts[0]).groups()
   state, num_steps = ord(s_state) - ord('A'), int(s_steps)
@@ -1951,7 +1956,7 @@ def process1(s, size=100_000):  # Fast version using integer arrays and jitted n
   def compute(state):
     tape = np.full(size, 0)
     pos = size // 2
-    for index in range(num_steps):
+    for _ in range(num_steps):
       write_value, move, state = logic[state * 2 + tape[pos]]
       tape[pos] = write_value
       pos += move
@@ -1988,13 +1993,25 @@ if 0:  # Compute min execution times over several calls.
 
 # %%
 if 1:  # Look for unwanted pollution of namespace.
-  print(textwrap.fill(' '.join(var for var, value in globals().items() if not (
-      var.startswith('_') or var in _ORIGINAL_GLOBALS))))
+  print(textwrap.fill(' '.join(name for name, value in globals().items() if not (
+      name.startswith('_') or name in _ORIGINAL_GLOBALS))))
 
 # %%
 if 0:  # Save puzzle inputs and answers to a compressed archive for downloading.
   # Create a new tar.gz file.
   hh.run(f"""cd /mnt/c/hh/tmp && cp -rp ~/.config/aocd/'{PROFILE.replace("_", " ")}' '{PROFILE}' && tar -czf '{PROFILE}.tar.gz' '{PROFILE}'""")
+
+# %%
+if 0:  # Look for misspelled words.
+  hh.run(rf"""cat advent_of_code_{YEAR}.py | perl -pe "s@https?:/.*?[)> ]@@g; s/'/ /g; s/\\\\n//g;" | spell | sort -u || true""")
+
+# %%
+if 0:  # Lint.
+  hh.run('echo flake8; flake8')
+  hh.run('echo mypy; mypy . || true')
+  hh.run('echo autopep8; autopep8 -j8 -d .')
+  hh.run('echo pylint; pylint -j8 . || true')
+  print('All ran.')
 
 # %%
 hh.show_notebook_cell_top_times()
@@ -2004,12 +2021,14 @@ hh.show_notebook_cell_top_times()
 # # End
 
 # %%
-def process1(s, part2=False):
-  grid = np.array([[int(c) for c in line] for line in s.strip().split('\n')])
+def process1(s, *, part2=False):
+  # grid = np.array([[int(c) for c in line] for line in s.strip().split('\n')])
   for line in s.strip('\n').split('\n'):
-    pass
+    _ = line
 
-  return None
+  if part2:
+    pass
+  # return None
 
 # check_eq(process1(s1), 17)
 # puzzle.verify(1, process1)
@@ -2029,6 +2048,6 @@ def process1(s, part2=False):
 # %% [markdown]
 # <!-- For Emacs:
 # Local Variables:
-# fill-column: 80
+# fill-column: 100
 # End:
 # -->

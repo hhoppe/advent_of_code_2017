@@ -433,9 +433,10 @@ s1 = '0 2 7 0'
 # %%
 def process1(s, *, part2=False):
   blocks = tuple(int(word) for word in s.strip('\n').split())
-  seen = {blocks: 0}
+  time_seen = {blocks: 0}
 
   for num_rearrangements in itertools.count(1):
+    # index = max(range(len(blocks)), key=lambda index: (blocks[index], -index))
     index = min((-count, index) for index, count in enumerate(blocks))[1]
     count = blocks[index]
     new_blocks = list(blocks)
@@ -443,9 +444,9 @@ def process1(s, *, part2=False):
     for x in range(count):
       new_blocks[(index + 1 + x) % len(blocks)] += 1
     blocks = tuple(new_blocks)
-    if blocks in seen:
-      return num_rearrangements - (seen[blocks] if part2 else 0)
-    seen[blocks] = num_rearrangements
+    if blocks in time_seen:
+      return num_rearrangements - (time_seen[blocks] if part2 else 0)
+    time_seen[blocks] = num_rearrangements
 
 
 check_eq(process1(s1), 5)

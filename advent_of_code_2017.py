@@ -488,11 +488,11 @@ cntj (57)
 
 # %%
 def day7(s, *, part2=False):
-  prog = re.compile(r'([a-z]+) \((\d+)\)( -> .*)?')
+  regex = re.compile(r'([a-z]+) \((\d+)\)( -> .*)?')
   graph = {}
   weights = {}
   for line in s.strip('\n').split('\n'):
-    name, weight, rest = prog.fullmatch(line).groups()
+    name, weight, rest = regex.fullmatch(line).groups()
     weights[name] = int(weight)
     graph[name] = rest[len(' -> '):].split(', ') if rest else []
   nodes = hh.topological_sort(graph)
@@ -550,12 +550,12 @@ c inc -20 if c == 10
 def day8(s, *, part2=False):
   COND_OPS = {'<': operator.lt, '>': operator.gt, '<=': operator.le, '>=': operator.ge,
               '==': operator.eq, '!=': operator.ne}
-  prog = re.compile(r'([a-z]+) (inc|dec) (-?\d+) if ([a-z]+) (<|>|<=|>=|==|!=) (-?\d+)')
+  regex = re.compile(r'([a-z]+) (inc|dec) (-?\d+) if ([a-z]+) (<|>|<=|>=|==|!=) (-?\d+)')
   registers: dict[str, int] = collections.defaultdict(int)
   max_value = 0
 
   for line in s.strip('\n').split('\n'):
-    reg, op, value, cond_reg, cond_op, cond_value = prog.fullmatch(line).groups()
+    reg, op, value, cond_reg, cond_op, cond_value = regex.fullmatch(line).groups()
     condition = COND_OPS[cond_op](registers[cond_reg], int(cond_value))
     if condition:
       registers[reg] += int(value) * {'inc': 1, 'dec': -1}[op]
@@ -1315,6 +1315,8 @@ puzzle.verify(1, day18)
 # %%
 def day18_part2(s):
   instructions = [tuple(line.split(' ')) for line in s.strip('\n').split('\n')]
+  evaluate = {'set': lambda _, b: b, 'add': lambda a, b: a + b, 'mul': lambda a, b: a * b,
+              'mod': lambda a, b: a % b}
 
   @dataclasses.dataclass
   class Program:
@@ -1346,19 +1348,11 @@ def day18_part2(s):
         if not self.queue:
           return False
         self.registers[operand] = self.queue.popleft()
-      elif operation == 'set':
-        self.registers[operand] = self.get(*rest)
-      elif operation == 'add':
-        self.registers[operand] += self.get(*rest)
-      elif operation == 'mul':
-        self.registers[operand] *= self.get(*rest)
-      elif operation == 'mod':
-        self.registers[operand] %= self.get(*rest)
       elif operation == 'jgz':
         if self.get(operand) > 0:
           self.pc += self.get(*rest) - 1
       else:
-        raise AssertionError
+        self.registers[operand] = evaluate[operation](self.registers[operand], self.get(*rest))
       self.pc += 1
       return True
 
@@ -1460,8 +1454,8 @@ def day20(s, *, part2=False):
   lines = s.strip('\n').split('\n')
 
   def parse(ch: str) -> np.ndarray:
-    prog = re.compile(ch + r'=<([0-9 -]+),([0-9 -]+),([0-9 -]+)>')
-    return np.array([[int(t) for t in prog.search(line).groups()] for line in lines])
+    regex = re.compile(ch + r'=<([0-9 -]+),([0-9 -]+),([0-9 -]+)>')
+    return np.array([[int(t) for t in regex.search(line).groups()] for line in lines])
 
   position, velocity, acceleration = (parse(ch) for ch in 'pva')
 
@@ -2167,14 +2161,6 @@ def dummy_day1(s, *, part2=False):
 # day1_part2 = functools.partial(day1, part2=True)
 # check_eq(day1_part2(s1), 18)
 # puzzle.verify(2, day1_part2)
-
-# %% [markdown]
-# [[Open the notebook in mybinder.org]](https://mybinder.org/v2/gh/hhoppe/advent_of_code_2017/main?filepath=advent_of_code_2017.ipynb)
-#
-# Currently there are problems in using `numba` within `mybinder.org`
-# (i.e., after `pip install numba`):
-# - `numpy` requires older `numba==0.51.2`
-# - `njit(cache=True)` fails at runtime, for unknown reason.
 
 # %% [markdown]
 # <!-- For Emacs:

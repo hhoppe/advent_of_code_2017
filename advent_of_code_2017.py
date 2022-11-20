@@ -42,7 +42,7 @@ import itertools
 import operator
 import re
 import textwrap
-from typing import Any
+from typing import Any, Tuple
 
 import advent_of_code_hhoppe  # https://github.com/hhoppe/advent-of-code-hhoppe/blob/main/advent_of_code_hhoppe/__init__.py
 import hhoppe_tools as hh  # https://github.com/hhoppe/hhoppe-tools/blob/main/hhoppe_tools/__init__.py
@@ -961,7 +961,7 @@ def day14a(s, *, part2=False):  # Slower version.
     # hh.show(grid[:8, :8])
     return np.sum(grid)
 
-  union_find = hh.UnionFind[tuple[int, int]]()
+  union_find = hh.UnionFind[Tuple[int, int]]()
   for y, x in np.ndindex(shape):
     if grid[y, x]:
       for y2, x2 in ((y + 1, x), (y, x + 1)):
@@ -1023,7 +1023,7 @@ def day14(s, *, part2=False, visualize=False):  # Faster, without rotation or re
       media.show_image(grid.repeat(2, axis=0).repeat(2, axis=1) == 0, border=True)
     return np.sum(grid)
 
-  union_find = hh.UnionFind[tuple[int, int]]()
+  union_find = hh.UnionFind[Tuple[int, int]]()
   for y, x in np.ndindex(shape):
     if grid[y, x]:
       for y2, x2 in ((y + 1, x), (y, x + 1)):

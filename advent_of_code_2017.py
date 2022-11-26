@@ -204,7 +204,7 @@ puzzle.verify(2, day2_part2)
 puzzle = advent.puzzle(day=3)
 
 # %%
-def spiral_yx():
+def day3_spiral_yx():
   """Yields y, x coordinates of successive spiral entries."""
   yield 0, 0  # Value 1.
   yield 0, 1  # Value 2.
@@ -231,7 +231,7 @@ def spiral_yx():
 # %%
 def day3_part1_slow(s):
   value = int(s)
-  y, x = next(itertools.islice(spiral_yx(), value - 1, None))
+  y, x = next(itertools.islice(day3_spiral_yx(), value - 1, None))
   return abs(y) + abs(x)
 
 check_eq(day3_part1_slow('1'), 0)
@@ -277,7 +277,7 @@ def day3_part2(s, *, size=41):
   value = int(s)
   grid = np.zeros((size, size), dtype=np.int32)
   g = size // 2  # The first value 1 is located at central grid[g, g].
-  for y0, x0 in spiral_yx():
+  for y0, x0 in day3_spiral_yx():
     y, x = y0 + g, x0 + g
     assert y >= 1 and x >= 1
     count = max(np.sum(grid[y - 1: y + 2, x - 1: x + 2]), 1)
@@ -488,11 +488,10 @@ cntj (57)
 
 # %%
 def day7(s, *, part2=False):
-  regex = re.compile(r'([a-z]+) \((\d+)\)( -> .*)?')
   graph = {}
   weights = {}
   for line in s.strip('\n').split('\n'):
-    name, weight, rest = regex.fullmatch(line).groups()
+    name, weight, rest = hh.re_groups(r'^([a-z]+) \((\d+)\)( -> .*)?$', line)
     weights[name] = int(weight)
     graph[name] = rest[len(' -> '):].split(', ') if rest else []
   nodes = hh.topological_sort(graph)
@@ -550,12 +549,12 @@ c inc -20 if c == 10
 def day8(s, *, part2=False):
   COND_OPS = {'<': operator.lt, '>': operator.gt, '<=': operator.le, '>=': operator.ge,
               '==': operator.eq, '!=': operator.ne}
-  regex = re.compile(r'([a-z]+) (inc|dec) (-?\d+) if ([a-z]+) (<|>|<=|>=|==|!=) (-?\d+)')
   registers: dict[str, int] = collections.defaultdict(int)
   max_value = 0
 
   for line in s.strip('\n').split('\n'):
-    reg, op, value, cond_reg, cond_op, cond_value = regex.fullmatch(line).groups()
+    pattern = r'^([a-z]+) (inc|dec) (-?\d+) if ([a-z]+) (<|>|<=|>=|==|!=) (-?\d+)$'
+    reg, op, value, cond_reg, cond_op, cond_value = hh.re_groups(pattern, line)
     condition = COND_OPS[cond_op](registers[cond_reg], int(cond_value))
     if condition:
       registers[reg] += int(value) * {'inc': 1, 'dec': -1}[op]
@@ -1454,8 +1453,8 @@ def day20(s, *, part2=False):
   lines = s.strip('\n').split('\n')
 
   def parse(ch: str) -> np.ndarray:
-    regex = re.compile(ch + r'=<([0-9 -]+),([0-9 -]+),([0-9 -]+)>')
-    return np.array([[int(t) for t in regex.search(line).groups()] for line in lines])
+    pattern = ch + r'=<([0-9 -]+),([0-9 -]+),([0-9 -]+)>'
+    return np.array([[int(t) for t in hh.re_groups(pattern, line)] for line in lines])
 
   position, velocity, acceleration = (parse(ch) for ch in 'pva')
 
@@ -2034,16 +2033,16 @@ In state B:
 # %%
 def day25a(s):  # Slow version using dicts and Python.
   parts = s.strip('\n').split('\n\n')
-  state, s_steps = re.match(r'(?s)Begin in state (.+)\..* after (.+) steps', parts[0]).groups()
+  state, s_steps = hh.re_groups(r'^(?s)Begin in state (.+)\..* after (.+) steps', parts[0])
   num_steps = int(s_steps)
   logic = {}
   for part in parts[1:]:
-    current, = re.match(r'In state (.+):', part).groups()
+    current, = hh.re_groups(r'^In state (.+):', part)
     conditions = part.split('If the current ')[1:]
     assert len(conditions) == 2
     for condition in conditions:
-      pattern = r'(?s)value is (.+):.*Write the value (.+)\..*to the (.+)\..* state (.+)\.'
-      condition_state, s_write_value, s_move, next_state = re.match(pattern, condition).groups()
+      pattern = r'^(?s)value is (.+):.*Write the value (.+)\..*to the (.+)\..* state (.+)\.'
+      condition_state, s_write_value, s_move, next_state = hh.re_groups(pattern, condition)
       logic[current, int(condition_state)] = (
           int(s_write_value), {'left': -1, 'right': +1}[s_move], next_state)
 
@@ -2065,14 +2064,14 @@ puzzle.verify(1, day25a)  # ~1.1 s.
 # %%
 def day25(s, *, size=100_000):  # Fast version using integer arrays and jitted numba.
   parts = s.strip('\n').split('\n\n')
-  s_state, s_steps = re.match(r'(?s)Begin in state (.+)\..* after (.+) steps', parts[0]).groups()
+  s_state, s_steps = hh.re_groups(r'^(?s)Begin in state (.+)\..* after (.+) steps', parts[0])
   state, num_steps = ord(s_state) - ord('A'), int(s_steps)
 
   logic_lines: list[tuple[int, int, int]] = []  # (write_value, move, next_state)
   for part in parts[1:]:
     for condition in part.split('If the current ')[1:]:
       pattern = r'(?s)Write the value (.+)\..*to the (.+)\..* state (.+)\.'
-      s_write_value, s_move, s_next_state = re.search(pattern, condition).groups()
+      s_write_value, s_move, s_next_state = hh.re_groups(pattern, condition)
       logic_lines.append(
           (int(s_write_value), {'left': -1, 'right': +1}[s_move], ord(s_next_state) - ord('A')))
   logic = np.array(logic_lines)

@@ -90,8 +90,7 @@ except ModuleNotFoundError:
   numba_njit = hh.noop_decorator
 
 # %%
-advent = advent_of_code_hhoppe.Advent(
-    year=YEAR, input_url=INPUT_URL, answer_url=ANSWER_URL)
+advent = advent_of_code_hhoppe.Advent(year=YEAR, input_url=INPUT_URL, answer_url=ANSWER_URL)
 
 # %%
 hh.adjust_jupyterlab_markdown_width()
@@ -2103,7 +2102,6 @@ puzzle.verify(1, day25)
 puzzle.verify(2, lambda s: '')  # (No "Part 2" on last day.)
 # (aocd does not allow a blank answer; the answer is not submitted)
 
-
 # %% [markdown]
 # <a name="timings"></a>
 # ## Timings
@@ -2139,7 +2137,6 @@ if 0:  # Lint.
 
 # %%
 hh.show_notebook_cell_top_times()
-
 
 # %% [markdown]
 # # End

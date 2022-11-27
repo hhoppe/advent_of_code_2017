@@ -548,7 +548,7 @@ c inc -20 if c == 10
 def day8(s, *, part2=False):
   COND_OPS = {'<': operator.lt, '>': operator.gt, '<=': operator.le, '>=': operator.ge,
               '==': operator.eq, '!=': operator.ne}
-  registers: dict[str, int] = collections.defaultdict(int)
+  registers: collections.defaultdict[str, int] = collections.defaultdict(int)
   max_value = 0
 
   for line in s.strip('\n').split('\n'):
@@ -1274,7 +1274,7 @@ rcv d
 def day18(s):
   instructions = [tuple(line.split(' ')) for line in s.strip('\n').split('\n')]
   pc = 0
-  registers: dict[str, int] = collections.defaultdict(int)
+  registers: collections.defaultdict[str, int] = collections.defaultdict(int)
   sound: int | None = None
 
   def get(value: str) -> int:
@@ -1321,7 +1321,7 @@ def day18_part2(s):
     """One of two programs running the shared `instructions`."""
     program_id: int
     pc: int = 0
-    registers: dict[str, int] = dataclasses.field(
+    registers: collections.defaultdict[str, int] = dataclasses.field(
         default_factory=lambda: collections.defaultdict(int))
     queue: collections.deque[int] = dataclasses.field(default_factory=collections.deque)
     total_sends: int = 0
@@ -2045,7 +2045,7 @@ def day25a(s):  # Slow version using dicts and Python.
       logic[current, int(condition_state)] = (
           int(s_write_value), {'left': -1, 'right': +1}[s_move], next_state)
 
-  tape: dict[int, int] = collections.defaultdict(int)
+  tape: collections.defaultdict[int, int] = collections.defaultdict(int)
   pos = 0
   for _ in range(num_steps):
     write_value, move, state = logic[state, tape[pos]]

@@ -382,10 +382,10 @@ def day5a(s, *, part2=False):  # Slow.
 check_eq(day5a(s1), 5)
 puzzle.verify(1, day5a)
 
-day5_part2a = functools.partial(day5a, part2=True)
-check_eq(day5_part2a(s1), 10)
+day5a_part2 = functools.partial(day5a, part2=True)
+check_eq(day5a_part2(s1), 10)
 if 0:
-  puzzle.verify(2, day5_part2a)  # ~2.2 s.
+  puzzle.verify(2, day5a_part2)  # ~2.2 s.
 
 
 # %%
@@ -818,7 +818,7 @@ puzzle.verify(1, day13)
 
 
 # %%
-def day13_part2a(s):  # Brute-force simplistic approach.
+def day13a_part2(s):  # Brute-force simplistic approach.
   range_of_depth = {}
   for line in s.strip('\n').split('\n'):
     s1, s2 = line.split(': ')
@@ -851,26 +851,26 @@ def day13_part2a(s):  # Brute-force simplistic approach.
         scanner_inc0[depth] = -scanner_inc0[depth]
 
 
-check_eq(day13_part2a(s1), 10)
+check_eq(day13a_part2(s1), 10)
 if 0:
-  puzzle.verify(2, day13_part2a)  # ~56 s (e.g. result 3966414)
+  puzzle.verify(2, day13a_part2)  # ~56 s (e.g. result 3966414)
 
 
 # %%
-def day13_part2b(s):  # Use numpy but one delay at a time.
+def day13b_part2(s):  # Use numpy but one delay at a time.
   scanners = np.array([list(map(int, line.split(': '))) for line in s.strip('\n').split('\n')])
   depth, period = scanners[:, 0], (scanners[:, 1] - 1) * 2
   for delay in itertools.count():
     if np.all((delay + depth) % period):
       return delay
 
-check_eq(day13_part2b(s1), 10)
+check_eq(day13b_part2(s1), 10)
 if 0:
-  puzzle.verify(2, day13_part2b)  # ~11 s.
+  puzzle.verify(2, day13b_part2)  # ~11 s.
 
 
 # %%
-def day13_part2c(s, *, chunk=3_000):  # Use numpy vectorized over chunks of delays.
+def day13c_part2(s, *, chunk=3_000):  # Use numpy vectorized over chunks of delays.
   scanners = np.array([list(map(int, line.split(': '))) for line in s.strip('\n').split('\n')])
   depth, period = scanners[:, 0], (scanners[:, 1] - 1) * 2
   for index in itertools.count():
@@ -880,12 +880,12 @@ def day13_part2c(s, *, chunk=3_000):  # Use numpy vectorized over chunks of dela
     if len(indices):
       return delay[0] + indices[0][0]
 
-check_eq(day13_part2c(s1), 10)
-puzzle.verify(2, day13_part2c)  # ~0.5 s.
+check_eq(day13c_part2(s1), 10)
+puzzle.verify(2, day13c_part2)  # ~0.5 s.
 
 
 # %%
-def day13_part2d(s, *, chunk=80_000):  # Use numpy sieve; iterate on scanners over chunks of delays.
+def day13d_part2(s, *, chunk=80_000):  # Use numpy sieve; iterate on scanners over chunks of delays.
   scanners = np.array([list(map(int, line.split(': '))) for line in s.strip('\n').split('\n')])
   depth, period = scanners[:, 0], (scanners[:, 1] - 1) * 2
   for index in itertools.count():
@@ -897,8 +897,8 @@ def day13_part2d(s, *, chunk=80_000):  # Use numpy sieve; iterate on scanners ov
     if len(indices):
       return delay[0] + indices[0][0]
 
-check_eq(day13_part2d(s1), 10)
-puzzle.verify(2, day13_part2d)  # ~0.4 s.
+check_eq(day13d_part2(s1), 10)
+puzzle.verify(2, day13d_part2)  # ~0.4 s.
 
 
 # %%
@@ -972,9 +972,9 @@ def day14a(s, *, part2=False):  # Slower version.
 check_eq(day14a('flqrgnkx'), 8108)
 puzzle.verify(1, day14a)
 
-day14_part2a = functools.partial(day14a, part2=True)
-check_eq(day14_part2a('flqrgnkx'), 1242)
-puzzle.verify(2, day14_part2a)
+day14a_part2 = functools.partial(day14a, part2=True)
+check_eq(day14a_part2('flqrgnkx'), 1242)
+puzzle.verify(2, day14a_part2)
 
 
 # %%
@@ -1104,7 +1104,7 @@ puzzle.verify(2, day15_part2)
 puzzle = advent.puzzle(day=16)
 
 # %%
-def day16_part1a(s, *, num=16):  # Simpler version supporting only Part 1.
+def day16a_part1(s, *, num=16):  # Simpler version supporting only Part 1.
   state = [chr(ord('a') + i) for i in range(num)]
 
   for move in s.strip('\n').split(','):
@@ -1126,8 +1126,8 @@ def day16_part1a(s, *, num=16):  # Simpler version supporting only Part 1.
   return ''.join(state)
 
 
-check_eq(day16_part1a('s1,x3/4,pe/b', num=5), 'baedc')
-puzzle.verify(1, day16_part1a)  # e.g. 'olgejankfhbmpidc'
+check_eq(day16a_part1('s1,x3/4,pe/b', num=5), 'baedc')
+puzzle.verify(1, day16a_part1)  # e.g. 'olgejankfhbmpidc'
 
 
 # %%
@@ -1604,13 +1604,13 @@ check_eq(day22a(s1, num_iterations=70), 41)
 check_eq(day22a(s1), 5587)
 puzzle.verify(1, day22a)
 
-day22_part2a = functools.partial(day22a, num_iterations=10_000_000, part2=True)
-check_eq(day22_part2a(s1, num_iterations=100), 26)
-# check_eq(day22_part2a(s1), 2_511_944)
-# puzzle.verify(2, day22_part2a)  # ~2.2 s.
+day22a_part2 = functools.partial(day22a, num_iterations=10_000_000, part2=True)
+check_eq(day22a_part2(s1, num_iterations=100), 26)
+# check_eq(day22a_part2(s1), 2_511_944)
+# puzzle.verify(2, day22a_part2)  # ~2.2 s.
 
 # %%
-_ = day22_part2a(puzzle.input, visualize=True)
+_ = day22a_part2(puzzle.input, visualize=True)
 
 
 # %%
@@ -1865,9 +1865,9 @@ def day24a(s, *, start=0, part2=False):  # Slower, creating list of updated rema
 check_eq(day24a(s1), 31)
 puzzle.verify(1, day24a)
 
-day24_part2a = functools.partial(day24a, part2=True)
-check_eq(day24_part2a(s1), 19)
-puzzle.verify(2, day24_part2a)
+day24a_part2 = functools.partial(day24a, part2=True)
+check_eq(day24a_part2(s1), 19)
+puzzle.verify(2, day24a_part2)
 
 
 # %%
@@ -1923,9 +1923,9 @@ def day24b(s, *, start=0, part2=False):  # Faster; side effects on sets of remai
 check_eq(day24b(s1), 31)
 puzzle.verify(1, day24b)
 
-day24_part2b = functools.partial(day24b, part2=True)
-check_eq(day24_part2b(s1), 19)
-puzzle.verify(2, day24_part2b)
+day24b_part2 = functools.partial(day24b, part2=True)
+check_eq(day24b_part2(s1), 19)
+puzzle.verify(2, day24b_part2)
 
 
 # %%

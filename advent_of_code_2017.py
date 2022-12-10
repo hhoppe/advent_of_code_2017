@@ -116,7 +116,7 @@ puzzle = advent.puzzle(day=1)
 
 # %%
 def day1(s, *, part2=False):
-  digits = [int(ch) for ch in s.strip('\n')]
+  digits = [int(ch) for ch in s.strip()]
   total = 0
   offset = len(digits) // 2 if part2 else 1
   for d0, d1 in zip(digits, digits[offset:] + digits[:offset]):
@@ -151,14 +151,14 @@ puzzle.verify(2, day1_part2)
 puzzle = advent.puzzle(day=2)
 
 # %%
-s1 = """
+s1 = """\
 5 1 9 5
 7 5 3
 2 4 6 8
 """
 
 # %%
-s2 = """
+s2 = """\
 5 9 2 8
 9 4 7 3
 3 8 6 5
@@ -169,7 +169,7 @@ s2 = """
 def day2(s, *, part2=False):
   total = 0
 
-  for line in s.strip('\n').split('\n'):
+  for line in s.splitlines():
     values = [int(field) for field in line.split()]
     if not part2:
       difference = max(values) - min(values)
@@ -305,14 +305,14 @@ puzzle.verify(2, day3_part2)
 puzzle = advent.puzzle(day=4)
 
 # %%
-s1 = """
+s1 = """\
 aa bb cc dd ee
 aa bb cc dd aa
 aa bb cc dd aaa
 """
 
 # %%
-s2 = """
+s2 = """\
 abcde fghij
 abcde xyz ecdab
 a ab abc abd abf abj
@@ -325,7 +325,7 @@ oiii ioii iioi iiio
 def day4(s, *, part2=False):
   num_valid = 0
 
-  for line in s.strip('\n').split('\n'):
+  for line in s.splitlines():
     words = line.split()
     valid = len(words) == len(set(words))
     if valid and part2:
@@ -356,7 +356,7 @@ puzzle.verify(2, day4_part2)
 puzzle = advent.puzzle(day=5)
 
 # %%
-s1 = """
+s1 = """\
 0
 3
 0
@@ -367,7 +367,7 @@ s1 = """
 
 # %%
 def day5a(s, *, part2=False):  # Slow.
-  values = [int(s2) for s2 in s.strip('\n').split('\n')]
+  values = [int(s2) for s2 in s.splitlines()]
   pos = 0
 
   for num_steps in itertools.count(1):
@@ -390,7 +390,7 @@ if 0:
 
 # %%
 def day5(s, *, part2=False):  # Fast.
-  values = np.array([int(s2) for s2 in s.strip('\n').split('\n')], dtype=np.int64)
+  values = np.array([int(s2) for s2 in s.splitlines()], dtype=np.int64)
 
   @numba_njit(cache=True)
   def compute(values: Any) -> int:
@@ -431,7 +431,7 @@ s1 = '0 2 7 0'
 
 # %%
 def day6(s, *, part2=False):
-  blocks = tuple(int(word) for word in s.strip('\n').split())
+  blocks = tuple(int(word) for word in s.split())
   time_seen = {blocks: 0}
 
   for num_rearrangements in itertools.count(1):
@@ -468,7 +468,7 @@ puzzle.verify(2, day6_part2)
 puzzle = advent.puzzle(day=7)
 
 # %%
-s1 = """
+s1 = """\
 pbga (66)
 xhth (57)
 ebii (61)
@@ -489,7 +489,7 @@ cntj (57)
 def day7(s, *, part2=False):
   graph = {}
   weights = {}
-  for line in s.strip('\n').split('\n'):
+  for line in s.splitlines():
     name, weight, rest = hh.re_groups(r'^([a-z]+) \((\d+)\)( -> .*)?$', line)
     weights[name] = int(weight)
     graph[name] = rest[len(' -> '):].split(', ') if rest else []
@@ -536,7 +536,7 @@ puzzle.verify(2, day7_part2)
 puzzle = advent.puzzle(day=8)
 
 # %%
-s1 = """
+s1 = """\
 b inc 5 if a > 1
 a inc 1 if b < 5
 c dec -10 if a >= 1
@@ -551,7 +551,7 @@ def day8(s, *, part2=False):
   registers: collections.defaultdict[str, int] = collections.defaultdict(int)
   max_value = 0
 
-  for line in s.strip('\n').split('\n'):
+  for line in s.splitlines():
     pattern = r'^([a-z]+) (inc|dec) (-?\d+) if ([a-z]+) (<|>|<=|>=|==|!=) (-?\d+)$'
     reg, op, value, cond_reg, cond_op, cond_value = hh.re_groups(pattern, line)
     condition = COND_OPS[cond_op](registers[cond_reg], int(cond_value))
@@ -583,7 +583,7 @@ puzzle = advent.puzzle(day=9)
 
 # %%
 def day9(s, *, part2=False):
-  s = re.sub(r'!.', '', s.strip('\n'))
+  s = re.sub(r'!.', '', s.strip())
   num_garbage = 0
 
   def read_group(s: str, i: int) -> tuple[list[Any], int]:
@@ -643,7 +643,7 @@ s1 = '3, 4, 1, 5'
 
 # %%
 def day10(s, *, num=256, num_rounds=1, part2=False):
-  s = s.strip('\n')
+  s = s.strip()
   if not part2:
     lengths = [int(s2) for s2 in s.replace(' ', '').split(',')]
   else:
@@ -692,7 +692,7 @@ puzzle = advent.puzzle(day=11)
 
 # %%
 def day11(s, *, part2=False):
-  steps = s.strip('\n').split(',')
+  steps = s.strip().split(',')
   MOVES = {'s': (1, 0), 'se': (0, 1), 'n': (-1, 0), 'nw': (0, -1), 'ne': (-1, 1), 'sw': (1, -1)}
 
   def hex_radius(y: int, x: int) -> int:
@@ -730,7 +730,7 @@ puzzle.verify(2, day11_part2)
 puzzle = advent.puzzle(day=12)
 
 # %%
-s1 = """
+s1 = """\
 0 <-> 2
 1 <-> 1
 2 <-> 0, 3, 4
@@ -745,7 +745,7 @@ s1 = """
 def day12(s, *, part2=False):
   union_find = hh.UnionFind[str]()
   nodes = []
-  for line in s.strip('\n').split('\n'):
+  for line in s.splitlines():
     node1, rest = line.split(' <-> ')
     nodes.append(node1)
     for node2 in rest.split(', '):
@@ -779,7 +779,7 @@ puzzle.verify(2, day12_part2)
 puzzle = advent.puzzle(day=13)
 
 # %%
-s1 = """
+s1 = """\
 0: 3
 1: 2
 4: 4
@@ -790,7 +790,7 @@ s1 = """
 # %%
 def day13(s):  # Supports Part 1 only.
   range_of_depth = {}
-  for line in s.strip('\n').split('\n'):
+  for line in s.splitlines():
     s1, s2 = line.split(': ')
     depth, range_ = int(s1), int(s2)
     assert depth >= 0 and range_ >= 2
@@ -820,7 +820,7 @@ puzzle.verify(1, day13)
 # %%
 def day13a_part2(s):  # Brute-force simplistic approach.
   range_of_depth = {}
-  for line in s.strip('\n').split('\n'):
+  for line in s.splitlines():
     s1, s2 = line.split(': ')
     depth, range_ = int(s1), int(s2)
     range_of_depth[depth] = range_
@@ -858,7 +858,7 @@ if 0:
 
 # %%
 def day13b_part2(s):  # Use numpy but one delay at a time.
-  scanners = np.array([list(map(int, line.split(': '))) for line in s.strip('\n').split('\n')])
+  scanners = np.array([list(map(int, line.split(': '))) for line in s.splitlines()])
   depth, period = scanners[:, 0], (scanners[:, 1] - 1) * 2
   for delay in itertools.count():
     if np.all((delay + depth) % period):
@@ -871,7 +871,7 @@ if 0:
 
 # %%
 def day13c_part2(s, *, chunk=3_000):  # Use numpy vectorized over chunks of delays.
-  scanners = np.array([list(map(int, line.split(': '))) for line in s.strip('\n').split('\n')])
+  scanners = np.array([list(map(int, line.split(': '))) for line in s.splitlines()])
   depth, period = scanners[:, 0], (scanners[:, 1] - 1) * 2
   for index in itertools.count():
     delay = np.arange(index * chunk, (index + 1) * chunk)
@@ -886,7 +886,7 @@ puzzle.verify(2, day13c_part2)  # ~0.5 s.
 
 # %%
 def day13d_part2(s, *, chunk=80_000):  # Use numpy sieve; iterate on scanners over chunks of delays.
-  scanners = np.array([list(map(int, line.split(': '))) for line in s.strip('\n').split('\n')])
+  scanners = np.array([list(map(int, line.split(': '))) for line in s.splitlines()])
   depth, period = scanners[:, 0], (scanners[:, 1] - 1) * 2
   for index in itertools.count():
     delay = np.arange(index * chunk, (index + 1) * chunk)
@@ -903,7 +903,7 @@ puzzle.verify(2, day13d_part2)  # ~0.4 s.
 
 # %%
 def day13_part2(s, *, chunk=100_000):  # Use numpy sieve (~Eratosthenes) with array slices.
-  scanners = np.array([list(map(int, line.split(': '))) for line in s.strip('\n').split('\n')])
+  scanners = np.array([list(map(int, line.split(': '))) for line in s.splitlines()])
   depth, period = scanners[:, 0], (scanners[:, 1] - 1) * 2
   for start in itertools.count(0, chunk):
     ok = np.full(chunk, True)
@@ -931,7 +931,7 @@ puzzle = advent.puzzle(day=14)
 
 # %%
 def day14a(s, *, part2=False):  # Slower version.
-  s = s.strip('\n')
+  s = s.strip()
 
   def knot_hash(s: str, num: int = 256, num_rounds: int = 64) -> list[int]:
     lengths = [ord(ch) for ch in s] + [17, 31, 73, 47, 23]
@@ -979,7 +979,7 @@ puzzle.verify(2, day14a_part2)
 
 # %%
 def day14(s, *, part2=False, visualize=False):  # Faster, without rotation or reversed().
-  s = s.strip('\n')
+  s = s.strip()
 
   def knot_hash(s: str, num: int = 256, num_rounds: int = 64) -> list[int]:
     lengths = [ord(ch) for ch in s] + [17, 31, 73, 47, 23]
@@ -1054,7 +1054,7 @@ _ = day14(puzzle.input, visualize=True)
 puzzle = advent.puzzle(day=15)
 
 # %%
-s1 = """
+s1 = """\
 Generator A starts with 65
 Generator B starts with 8921
 """
@@ -1062,7 +1062,7 @@ Generator B starts with 8921
 
 # %%
 def day15(s, *, part2=False):
-  state0, state1 = (int(line.split(' starts with ')[1]) for line in s.strip('\n').split('\n'))
+  state0, state1 = (int(line.split(' starts with ')[1]) for line in s.splitlines())
 
   @numba_njit(cache=True)
   def compute(state0: int, state1: int) -> int:
@@ -1107,7 +1107,7 @@ puzzle = advent.puzzle(day=16)
 def day16a_part1(s, *, num=16):  # Simpler version supporting only Part 1.
   state = [chr(ord('a') + i) for i in range(num)]
 
-  for move in s.strip('\n').split(','):
+  for move in s.strip().split(','):
     operation, operands = move[0], move[1:]
     if operation == 's':
       size = int(operands)
@@ -1136,7 +1136,7 @@ def day16(s, *, num=16, num_permutations=1):
   perm_sym = list(range(num))  # Destination sym for each source sym.
   perm_pos = list(range(num))  # Destination pos for each source pos.
 
-  for move in s.strip('\n').split(','):
+  for move in s.strip().split(','):
     operation, operands = move[0], move[1:]
     if operation == 'p':
       sym0, sym1 = (ord(ch) - ord('a') for ch in operands.split('/'))
@@ -1191,7 +1191,7 @@ puzzle = advent.puzzle(day=17)
 
 # %%
 def day17(s, *, part2=False):
-  step = int(s.strip('\n'))
+  step = int(s)
   assert step > 0
 
   if not part2:
@@ -1245,7 +1245,7 @@ puzzle.verify(2, day17_part2)
 puzzle = advent.puzzle(day=18)
 
 # %%
-s1 = """
+s1 = """\
 set a 1
 add a 2
 mul a a
@@ -1259,7 +1259,7 @@ jgz a -2
 """
 
 # %%
-s2 = """
+s2 = """\
 snd 1
 snd 2
 snd p
@@ -1272,7 +1272,7 @@ rcv d
 
 # %%
 def day18(s):
-  instructions = [tuple(line.split(' ')) for line in s.strip('\n').split('\n')]
+  instructions = [tuple(line.split(' ')) for line in s.splitlines()]
   pc = 0
   registers: collections.defaultdict[str, int] = collections.defaultdict(int)
   sound: int | None = None
@@ -1312,7 +1312,7 @@ puzzle.verify(1, day18)
 
 # %%
 def day18_part2(s):
-  instructions = [tuple(line.split(' ')) for line in s.strip('\n').split('\n')]
+  instructions = [tuple(line.split(' ')) for line in s.splitlines()]
   evaluate = {'set': lambda _, b: b, 'add': lambda a, b: a + b, 'mul': lambda a, b: a * b,
               'mod': lambda a, b: a % b}
 
@@ -1376,7 +1376,7 @@ puzzle.verify(2, day18_part2)
 puzzle = advent.puzzle(day=19)
 
 # %%
-s1 = """
+s1 = """\
      |          X
      |  +--+    X
      A  |  C    X
@@ -1433,13 +1433,13 @@ puzzle.verify(2, day19_part2)
 puzzle = advent.puzzle(day=20)
 
 # %%
-s1 = """
+s1 = """\
 p=< 3,0,0>, v=< 2,0,0>, a=<-1,0,0>
 p=< 4,0,0>, v=< 0,0,0>, a=<-2,0,0>
 """
 
 # %%
-s2 = """
+s2 = """\
 p=<-6,0,0>, v=< 3,0,0>, a=< 0,0,0>
 p=<-4,0,0>, v=< 2,0,0>, a=< 0,0,0>
 p=<-2,0,0>, v=< 1,0,0>, a=< 0,0,0>
@@ -1449,7 +1449,7 @@ p=< 3,0,0>, v=<-1,0,0>, a=< 0,0,0>
 
 # %%
 def day20(s, *, part2=False):
-  lines = s.strip('\n').split('\n')
+  lines = s.splitlines()
 
   def parse(ch: str) -> np.ndarray:
     pattern = ch + r'=<([0-9 -]+),([0-9 -]+),([0-9 -]+)>'
@@ -1493,7 +1493,7 @@ puzzle.verify(2, day20_part2)
 puzzle = advent.puzzle(day=21)
 
 # %%
-s1 = """
+s1 = """\
 ../.# => ##./#../...
 .#./..#/### => #..#/..../..../#..#
 """
@@ -1506,7 +1506,7 @@ def day21(s, *, num_iterations=5, visualize=False):
     return (np.array([list(row) for row in s.split('/')]) == '#').astype(int)
 
   rules = {2: np.full((2**4, 3, 3), 0), 3: np.full((2**9, 4, 4), 0)}
-  for line in s.strip('\n').split('\n'):
+  for line in s.splitlines():
     grid_lhs, grid_rhs = map(get_grid, line.split(' => '))
     size = grid_lhs.shape[0]
     for _ in range(2):
@@ -1562,7 +1562,7 @@ _ = day21_part2(puzzle.input, visualize=True)
 puzzle = advent.puzzle(day=22)
 
 # %%
-s1 = """
+s1 = """\
 ..#
 #..
 ...
@@ -1665,7 +1665,7 @@ puzzle = advent.puzzle(day=23)
 
 # %%
 def day23(s, *, part2=False):
-  instructions = [tuple(line.split(' ')) for line in s.strip('\n').split('\n')]
+  instructions = [tuple(line.split(' ')) for line in s.splitlines()]
   pc = 0
   registers = collections.defaultdict(int)
   num_mul = 0
@@ -1707,7 +1707,7 @@ day23_part2 = functools.partial(day23, part2=True)
 puzzle.verify(2, day23_part2)
 
 # %%
-# print('\n'.join(f'# L{i:02} {line:14} # ' for i, line in enumerate(puzzle.input.split('\n'))))
+# print('\n'.join(f'# L{i:02} {line:14} # ' for i, line in enumerate(puzzle.input.splitlines())))
 
 # L00 set b 84|93    # b = 84|93
 # L01 set c b        # c = b
@@ -1809,7 +1809,7 @@ puzzle.verify(2, day23_part2)
 puzzle = advent.puzzle(day=24)
 
 # %%
-s1 = """
+s1 = """\
 0/2
 2/2
 2/3
@@ -1824,7 +1824,7 @@ s1 = """
 # %%
 def day24a(s, *, start=0, part2=False):  # Slower, creating list of updated remaining components.
   components: list[tuple[int, int]] = [
-      tuple(map(int, line.split('/'))) for line in s.strip('\n').split('\n')]  # type: ignore[misc]
+      tuple(map(int, line.split('/'))) for line in s.splitlines()]  # type: ignore[misc]
   check_eq(len(components), len(set(components)))  # In fact, they are all unique.
 
   def compatible_components(start: int, components: list[tuple[int, int]]):
@@ -1872,7 +1872,7 @@ puzzle.verify(2, day24a_part2)
 
 # %%
 def day24b(s, *, start=0, part2=False):  # Faster; side effects on sets of remaining components.
-  components = [tuple(map(int, line.split('/'))) for line in s.strip('\n').split('\n')]
+  components = [tuple(map(int, line.split('/'))) for line in s.splitlines()]
   max_v = max(max(v0, v1) for v0, v1 in components)
   active_from_v: list[set[int]] = [set() for v in range(max_v + 1)]
   for v0, v1 in components:
@@ -1931,7 +1931,7 @@ puzzle.verify(2, day24b_part2)
 # %%
 # Immediately treat (v0, v0) pairs, and canonicalize order of loops.
 def day24(s, *, start=0, part2=False):
-  components = [tuple(map(int, line.split('/'))) for line in s.strip('\n').split('\n')]
+  components = [tuple(map(int, line.split('/'))) for line in s.splitlines()]
   max_v = max(max(v0, v1) for v0, v1 in components)
   has_pair = [False] * (max_v + 1)
   active_from_v: list[set[int]] = [set() for v in range(max_v + 1)]
@@ -2003,7 +2003,7 @@ puzzle.verify(2, day24_part2)
 puzzle = advent.puzzle(day=25)
 
 # %%
-s1 = """
+s1 = """\
 Begin in state A.
 Perform a diagnostic checksum after 6 steps.
 
@@ -2031,7 +2031,7 @@ In state B:
 
 # %%
 def day25a(s):  # Slow version using dicts and Python.
-  parts = s.strip('\n').split('\n\n')
+  parts = s.split('\n\n')
   state, s_steps = hh.re_groups(r'^(?s)Begin in state (.+)\..* after (.+) steps', parts[0])
   num_steps = int(s_steps)
   logic = {}
@@ -2062,7 +2062,7 @@ puzzle.verify(1, day25a)  # ~1.1 s.
 
 # %%
 def day25(s, *, size=100_000):  # Fast version using integer arrays and jitted numba.
-  parts = s.strip('\n').split('\n\n')
+  parts = s.split('\n\n')
   s_state, s_steps = hh.re_groups(r'^(?s)Begin in state (.+)\..* after (.+) steps', parts[0])
   state, num_steps = ord(s_state) - ord('A'), int(s_steps)
 
@@ -2140,23 +2140,6 @@ hh.show_notebook_cell_top_times()
 
 # %% [markdown]
 # # End
-
-# %%
-def dummy_day1(s, *, part2=False):
-  # grid = np.array([[int(c) for c in line] for line in s.strip().split('\n')])
-  for line in s.strip('\n').split('\n'):
-    _ = line
-
-  if part2:
-    pass
-  # return None
-
-# check_eq(day1(s1), 17)
-# puzzle.verify(1, day1)
-
-# day1_part2 = functools.partial(day1, part2=True)
-# check_eq(day1_part2(s1), 18)
-# puzzle.verify(2, day1_part2)
 
 # %% [markdown]
 # <!-- For Emacs:

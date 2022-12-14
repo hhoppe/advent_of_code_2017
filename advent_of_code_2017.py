@@ -29,7 +29,7 @@
 # !command -v ffmpeg >/dev/null || (apt-get -qq update && apt-get -qq -y install ffmpeg) >/dev/null
 
 # %%
-# !pip install -q advent-of-code-hhoppe hhoppe-tools mediapy numba
+# !pip install -q advent-of-code-hhoppe hhoppe-tools mediapy more-itertools numba
 
 # %%
 from __future__ import annotations
@@ -39,6 +39,7 @@ from collections.abc import Iterator
 import dataclasses
 import functools
 import itertools
+import math
 import operator
 import re
 import textwrap
@@ -47,6 +48,7 @@ from typing import Any, Tuple
 import advent_of_code_hhoppe  # https://github.com/hhoppe/advent-of-code-hhoppe/blob/main/advent_of_code_hhoppe/__init__.py
 import hhoppe_tools as hh  # https://github.com/hhoppe/hhoppe-tools/blob/main/hhoppe_tools/__init__.py
 import mediapy as media
+import more_itertools
 import numpy as np
 
 # %%
@@ -504,8 +506,7 @@ def day7(s, *, part2=False):
     return weights[node] + sum(tower_weight(child) for child in graph[node])
 
   for node in reversed(nodes):
-    children = graph[node]
-    if children:
+    if children := graph[node]:
       tower_weights = [tower_weight(child) for child in children]
       unique, index, counts = np.unique(tower_weights, return_index=True, return_counts=True)
       if len(unique) > 1:
@@ -664,7 +665,8 @@ def day10(s, *, num=256, num_rounds=1, part2=False):
   if not part2:
     return state[0] * state[1]
 
-  xors = [functools.reduce(operator.xor, group, 0) for group in hh.grouped(state, 16)]
+  xors = [functools.reduce(operator.xor, group, 0)
+          for group in more_itertools.chunked(state, 16, strict=True)]
   return ''.join(f'{value:02x}' for value in xors)
 
 
@@ -946,7 +948,8 @@ def day14a(s, *, part2=False):  # Slower version.
         state = rotated[-position:] + rotated[:-position] if position else rotated
         position = (position + length + skip) % num
         skip += 1
-    return [functools.reduce(operator.xor, group, 0) for group in hh.grouped(state, 16)]
+    return [functools.reduce(operator.xor, group, 0)
+            for group in more_itertools.chunked(state, 16, strict=True)]
 
   shape = 128, 128
   grid = np.full(shape, 0)
@@ -1007,7 +1010,8 @@ def day14(s, *, part2=False, visualize=False):  # Faster, without rotation or re
           state[:begin] = state[begin - 1::-1]
         position = (position + length + skip) % num
         skip += 1
-    return [functools.reduce(operator.xor, group, 0) for group in hh.grouped(state, 16)]
+    return [functools.reduce(operator.xor, group, 0)
+            for group in more_itertools.chunked(state, 16, strict=True)]
 
   shape = 128, 128
   grid = np.full(shape, 0)
@@ -1675,7 +1679,7 @@ def day23(s, *, part2=False):
     return registers[value] if value.isalpha() else int(value)
 
   def is_prime(n: int) -> bool:
-    return n > 1 and all(n % i != 0 for i in range(2, int(n**0.5) + 1))
+    return n > 1 and all(n % i != 0 for i in range(2, math.isqrt(n) + 1))
 
   while 0 <= pc < len(instructions):
     # hh.show(pc, instructions[pc])

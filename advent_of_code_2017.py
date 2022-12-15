@@ -276,7 +276,7 @@ puzzle.verify(1, day3_part1)
 # %%
 def day3_part2(s, *, size=41):
   value = int(s)
-  grid = np.zeros((size, size), dtype=np.int32)
+  grid = np.zeros((size, size), np.int32)
   g = size // 2  # The first value 1 is located at central grid[g, g].
   for y0, x0 in day3_spiral_yx():
     y, x = y0 + g, x0 + g
@@ -392,7 +392,7 @@ if 0:
 
 # %%
 def day5(s, *, part2=False):  # Fast.
-  values = np.array([int(s2) for s2 in s.splitlines()], dtype=np.int64)
+  values = np.array([int(s2) for s2 in s.splitlines()], np.int64)
 
   @numba_njit(cache=True)
   def compute(values: Any) -> int:

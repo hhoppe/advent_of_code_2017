@@ -1235,7 +1235,7 @@ check_eq(day17('3'), 638)
 puzzle.verify(1, day17)
 
 day17_part2 = functools.partial(day17, part2=True)
-_ = day17_part2(puzzle.input)  # For Numba jit.
+_ = day17_part2(puzzle.input)  # For numba jit.
 puzzle.verify(2, day17_part2)
 
 # %% [markdown]

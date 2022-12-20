@@ -42,7 +42,9 @@ import itertools
 import math
 import operator
 import re
+import sys
 import textwrap
+import types
 from typing import Any, Tuple
 
 import advent_of_code_hhoppe  # https://github.com/hhoppe/advent-of-code-hhoppe/blob/main/advent_of_code_hhoppe/__init__.py
@@ -83,10 +85,11 @@ if 0:
 # %%
 try:
   import numba
-  numba_njit = numba.njit
 except ModuleNotFoundError:
   print('Package numba is unavailable.')
-  numba_njit = hh.noop_decorator
+  numba = sys.modules['numba'] = types.ModuleType('numba')
+  numba.njit = hh.noop_decorator
+using_numba = hasattr(numba, 'jit')
 
 # %%
 advent = advent_of_code_hhoppe.Advent(year=YEAR, input_url=INPUT_URL, answer_url=ANSWER_URL)
@@ -388,21 +391,23 @@ if 0:
 
 
 # %%
-def day5(s, *, part2=False):  # Fast.
+# Fast.
+
+@numba.njit
+def day5_compute(values: Any, part2: bool) -> int:
+  pos = 0
+  num_steps = 0
+  while 0 <= pos < len(values):
+    num_steps += 1
+    offset = values[pos]
+    values[pos] = offset - 1 if (part2 and offset >= 3) else offset + 1
+    pos += offset
+  return num_steps
+
+
+def day5(s, *, part2=False):
   values = np.array([int(s2) for s2 in s.splitlines()], np.int64)
-
-  @numba_njit(cache=True)
-  def compute(values: Any) -> int:
-    pos = 0
-    num_steps = 0
-    while 0 <= pos < len(values):
-      num_steps += 1
-      offset = values[pos]
-      values[pos] = offset - 1 if (part2 and offset >= 3) else offset + 1
-      pos += offset
-    return num_steps
-
-  return compute(values)
+  return day5_compute(values, part2)
 
 
 check_eq(day5(s1), 5)
@@ -1062,27 +1067,27 @@ Generator B starts with 8921
 
 
 # %%
+@numba.njit
+def day15_compute(state0: int, state1: int, part2: bool) -> int:
+  factor0, factor1 = 16807, 48271
+  num_matches = 0
+  num_checks = 5_000_000 if part2 else 40_000_000
+  for _ in range(num_checks):
+    while True:
+      state0 = (state0 * factor0) % 2147483647
+      if not part2 or state0 & 3 == 0:
+        break
+    while True:
+      state1 = (state1 * factor1) % 2147483647
+      if not part2 or state1 & 7 == 0:
+        break
+    num_matches += (state0 & 65535) == (state1 & 65535)
+  return num_matches
+
+
 def day15(s, *, part2=False):
   state0, state1 = (int(line.split(' starts with ')[1]) for line in s.splitlines())
-
-  @numba_njit(cache=True)
-  def compute(state0: int, state1: int) -> int:
-    factor0, factor1 = 16807, 48271
-    num_matches = 0
-    num_checks = 5_000_000 if part2 else 40_000_000
-    for _ in range(num_checks):
-      while True:
-        state0 = (state0 * factor0) % 2147483647
-        if not part2 or state0 & 3 == 0:
-          break
-      while True:
-        state1 = (state1 * factor1) % 2147483647
-        if not part2 or state1 & 7 == 0:
-          break
-      num_matches += (state0 & 65535) == (state1 & 65535)
-    return num_matches
-
-  return compute(state0, state1)
+  return day15_compute(state0, state1, part2)
 
 
 check_eq(day15(s1), 588)
@@ -1191,6 +1196,23 @@ puzzle.verify(2, day16_part2)
 puzzle = advent.puzzle(day=17)
 
 # %%
+@numba.njit  # ~2.6 s -> ~0.16 s.
+def day17_compute_part2(step: int) -> int:
+  pos = -1
+  after_zero = -1
+  step1 = step + 1
+
+  for index in range(1, 50_000_000 + 1):
+    pos = (pos + step1) % index
+    if pos == 0:
+      after_zero = index
+
+  return after_zero
+  # Comparable to C++:
+  # https://ideone.com/HLrQCx  0.4 s
+  # https://www.online-cpp.com/rluemsc5ha  1.2 s
+
+
 def day17(s, *, part2=False):
   step = int(s)
   assert step > 0
@@ -1206,24 +1228,7 @@ def day17(s, *, part2=False):
 
     return state[pos + 1]
 
-  @numba_njit(cache=True)  # ~2.6 s -> ~0.16 s.
-  def compute_part2():
-    pos = -1
-    after_zero = -1
-    step1 = step + 1
-
-    for index in range(1, 50_000_000 + 1):
-      pos = (pos + step1) % index
-      if pos == 0:
-        after_zero = index
-
-    return after_zero
-
-  return compute_part2()
-
-  # Comparable to C++:
-  # https://ideone.com/HLrQCx  0.4 s
-  # https://www.online-cpp.com/rluemsc5ha  1.2 s
+  return day17_compute_part2(step)
 
 
 check_eq(day17('3'), 638)
@@ -1615,31 +1620,31 @@ _ = day22a_part2(puzzle.input, visualize=True)
 
 
 # %%
+@numba.njit  # ~3.9 s -> ~0.05 s.
+def day22_compute(grid: np.ndarray, num_iterations: int, update: tuple[int, ...]) -> int:
+  y, x = grid.shape[0] // 2, grid.shape[1] // 2
+  dy, dx = -1, 0  # Up direction.
+  num_newly_infected = 0
+  for _ in range(num_iterations):
+    state = grid[y, x]
+    if state == 0:
+      dy, dx = -dx, dy  # Turn left.
+    elif state == 1:
+      dy, dx = dx, -dy  # Turn right.
+    elif state == 3:
+      dy, dx = -dy, -dx  # Make U-turn.
+    grid[y, x] = new_state = update[state]
+    num_newly_infected += new_state == 1
+    y, x = y + dy, x + dx
+  return num_newly_infected
+
+
 def day22(s, *, num_iterations=10_000, part2=False):
   grid = hh.grid_from_string(s, {'.': 0, '#': 1})  # Later also: {'W': 2, 'F': 3}.
   pad = 500 if part2 else 200
   grid = np.pad(grid, pad)
-
-  @numba_njit(cache=True)  # ~3.9 s -> ~0.05 s.
-  def compute(grid):
-    UPDATE = (2, 3, 1, 0) if part2 else (1, 0)
-    y, x = grid.shape[0] // 2, grid.shape[1] // 2
-    dy, dx = -1, 0  # Up direction.
-    num_newly_infected = 0
-    for _ in range(num_iterations):
-      state = grid[y, x]
-      if state == 0:
-        dy, dx = -dx, dy  # Turn left.
-      elif state == 1:
-        dy, dx = dx, -dy  # Turn right.
-      elif state == 3:
-        dy, dx = -dy, -dx  # Make U-turn.
-      grid[y, x] = new_state = UPDATE[state]
-      num_newly_infected += new_state == 1
-      y, x = y + dy, x + dx
-    return num_newly_infected
-
-  return compute(grid)
+  update = (2, 3, 1, 0) if part2 else (1, 0)
+  return day22_compute(grid, num_iterations, update)
 
 
 check_eq(day22(s1, num_iterations=7), 5)
@@ -2062,7 +2067,20 @@ puzzle.verify(1, day25a)  # ~1.1 s.
 
 
 # %%
-def day25(s, *, size=100_000):  # Fast version using integer arrays and jitted numba.
+# Fast version using integer arrays and jitted numba.
+
+@numba.njit  # ~10.5 s -> 0.05 s.
+def day25_compute(size: int, num_steps: int, state: int, logic: np.ndarray) -> int:
+  tape = np.full(size, 0)
+  pos = size // 2
+  for _ in range(num_steps):
+    write_value, move, state = logic[state * 2 + tape[pos]]
+    tape[pos] = write_value
+    pos += move
+  return np.sum(tape)
+
+
+def day25(s, *, size=100_000):
   parts = s.split('\n\n')
   s_state, s_steps = hh.re_groups(r'^(?s)Begin in state (.+)\..* after (.+) steps', parts[0])
   state, num_steps = ord(s_state) - ord('A'), int(s_steps)
@@ -2075,18 +2093,7 @@ def day25(s, *, size=100_000):  # Fast version using integer arrays and jitted n
       logic_lines.append(
           (int(s_write_value), {'left': -1, 'right': +1}[s_move], ord(s_next_state) - ord('A')))
   logic = np.array(logic_lines)
-
-  @numba_njit(cache=True)  # ~10.5 s -> 0.05 s.
-  def compute(state):
-    tape = np.full(size, 0)
-    pos = size // 2
-    for _ in range(num_steps):
-      write_value, move, state = logic[state * 2 + tape[pos]]
-      tape[pos] = write_value
-      pos += move
-    return np.sum(tape)
-
-  return compute(state)
+  return day25_compute(size, num_steps, state, logic)
 
 
 check_eq(day25(s1), 3)

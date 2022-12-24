@@ -880,9 +880,9 @@ def day13c_part2(s, *, chunk=3_000):  # Use numpy vectorized over chunks of dela
   for index in itertools.count():
     delay = np.arange(index * chunk, (index + 1) * chunk)
     matrix = (delay[:, None] + depth) % period
-    indices = np.argwhere(np.all(matrix, axis=1))
+    indices, = np.nonzero(matrix.all(axis=1))
     if len(indices):
-      return delay[0] + indices[0][0]
+      return delay[0] + indices[0]
 
 check_eq(day13c_part2(s1), 10)
 puzzle.verify(2, day13c_part2)  # ~0.5 s.
@@ -897,9 +897,9 @@ def day13d_part2(s, *, chunk=80_000):  # Use numpy sieve; iterate on scanners ov
     ok = np.full(chunk, True)
     for d, p in zip(depth, period):
       ok[(delay + d) % p == 0] = False
-    indices = np.argwhere(ok)
+    indices, = np.nonzero(ok)
     if len(indices):
-      return delay[0] + indices[0][0]
+      return delay[0] + indices[0]
 
 check_eq(day13d_part2(s1), 10)
 puzzle.verify(2, day13d_part2)  # ~0.4 s.
@@ -914,9 +914,9 @@ def day13_part2(s, *, chunk=100_000):  # Use numpy sieve (~Eratosthenes) with ar
     for d, p in zip(depth, period):
       first = (-(start + d)) % p
       ok[first:chunk:p] = False
-    indices = np.argwhere(ok)
+    indices, = np.nonzero(ok)
     if len(indices):
-      return start + indices[0][0]
+      return start + indices[0]
 
 check_eq(day13_part2(s1, chunk=4), 10)
 puzzle.verify(2, day13_part2)  # ~0.005 s.
@@ -965,13 +965,12 @@ def day14a(s, *, part2=False):  # Slower version.
     return np.sum(grid)
 
   union_find = hh.UnionFind[Tuple[int, int]]()
-  for y, x in np.ndindex(shape):
-    if grid[y, x]:
-      for y2, x2 in ((y + 1, x), (y, x + 1)):
-        if y2 < shape[0] and x2 < shape[1] and grid[y2, x2]:
-          union_find.union((y, x), (y2, x2))
+  for y, x in np.argwhere(grid):
+    for y2, x2 in ((y + 1, x), (y, x + 1)):
+      if y2 < shape[0] and x2 < shape[1] and grid[y2, x2]:
+        union_find.union((y, x), (y2, x2))
 
-  return len(set(union_find.find((y, x)) for y, x in np.ndindex(shape) if grid[y, x]))
+  return len(set(union_find.find((y, x)) for y, x in np.argwhere(grid)))
 
 
 check_eq(day14a('flqrgnkx'), 8108)
@@ -1028,13 +1027,15 @@ def day14(s, *, part2=False, visualize=False):  # Faster, without rotation or re
     return np.sum(grid)
 
   union_find = hh.UnionFind[Tuple[int, int]]()
-  for y, x in np.ndindex(shape):
-    if grid[y, x]:
-      for y2, x2 in ((y + 1, x), (y, x + 1)):
-        if y2 < shape[0] and x2 < shape[1] and grid[y2, x2]:
-          union_find.union((y, x), (y2, x2))
+  # for y, x in np.argwhere(grid):  # Slowest
+  # for y, x in zip(*np.nonzero(grid)):  # Slow.
+  # for y, x in np.ndindex(shape): if grid[y, x]:  # Only slightly slower.
+  for y, x in (yx for yx, value in np.ndenumerate(grid) if value):  # Fastest.
+    for y2, x2 in ((y + 1, x), (y, x + 1)):
+      if y2 < shape[0] and x2 < shape[1] and grid[y2, x2]:
+        union_find.union((y, x), (y2, x2))
 
-  return len(set(union_find.find((y, x)) for y, x in np.ndindex(shape) if grid[y, x]))
+  return len(set(union_find.find((y, x)) for (y, x), value in np.ndenumerate(grid) if value))
 
 
 check_eq(day14('flqrgnkx'), 8108)
@@ -1396,6 +1397,7 @@ s1 = """\
 def day19(s, *, part2=False):
   grid = hh.grid_from_string(s)  # shape=(201, 201).
   grid = np.pad(grid, ((0, 1), (0, 1)), constant_values=' ')
+  # (y,), (x,) = np.nonzero(grid[:1] == '|')
   (y, x), = np.argwhere(grid[:1] == '|')
   dy, dx = 1, 0
   letters = []
@@ -1615,7 +1617,6 @@ check_eq(day22a_part2(s1, num_iterations=100), 26)
 # check_eq(day22a_part2(s1), 2_511_944)
 # puzzle.verify(2, day22a_part2)  # ~2.2 s.
 
-# %%
 _ = day22a_part2(puzzle.input, visualize=True)
 
 

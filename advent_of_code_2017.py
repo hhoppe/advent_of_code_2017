@@ -406,7 +406,7 @@ def day5_compute(values: Any, part2: bool) -> int:
 
 
 def day5(s, *, part2=False):
-  values = np.array([int(s2) for s2 in s.splitlines()], np.int64)
+  values = np.array(s.splitlines(), int)
   return day5_compute(values, part2)
 
 
@@ -1461,7 +1461,7 @@ def day20(s, *, part2=False):
 
   def parse(ch: str) -> np.ndarray:
     pattern = ch + r'=<([0-9 -]+),([0-9 -]+),([0-9 -]+)>'
-    return np.array([[int(t) for t in hh.re_groups(pattern, line)] for line in lines])
+    return np.array([hh.re_groups(pattern, line) for line in lines], int)
 
   position, velocity, acceleration = (parse(ch) for ch in 'pva')
 
@@ -1538,7 +1538,7 @@ def day21(s, *, num_iterations=5, visualize=False):
     grid_blocks = grid.reshape((m, size, m, size)).transpose(0, 2, 1, 3).reshape((m, m, size**2))
     encoded = grid_blocks.dot(2**np.arange(size**2))
     new_blocks = rules[size][encoded]
-    grid = new_blocks.transpose(0, 2, 1, 3).reshape((new_n, new_n))
+    grid = new_blocks.transpose(0, 2, 1, 3).reshape(new_n, new_n)
 
   if visualize:
     combined = hh.assemble_arrays(grids, (1, -1), background=True, spacing=8)

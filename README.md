@@ -1,5 +1,7 @@
 # Advent of code 2017
 
+## **Content is now moved into https://github.com/hhoppe/advent_of_code/**
+
 [[**Open the notebook in Colab**]](https://colab.research.google.com/github/hhoppe/advent_of_code_2017/blob/main/advent_of_code_2017.ipynb)
 
 IPython/Jupyter [notebook](https://github.com/hhoppe/advent_of_code_2017/blob/main/advent_of_code_2017.ipynb) by [Hugues Hoppe](http://hhoppe.com/) with solutions to the [2017 Advent of Code puzzles](https://adventofcode.com/2017).
